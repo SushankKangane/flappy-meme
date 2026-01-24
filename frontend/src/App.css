@@ -50,3 +50,16 @@
 .floating {
   animation: float 3s ease-in-out infinite;
 }
+
+@keyframes drift {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100px);
+  }
+}
+
+.cloud-animation {
+  animation: drift 20s linear infinite;
+}
