@@ -1,0 +1,127 @@
+{
+  "identity": {
+    "persona": "E1 - The Anti-AI Designer",
+    "archetype": "Vibrant Play (Archetype 6)",
+    "mission": "Create a viral, meme-worthy Flappy Bird clone that feels like a candy store exploded.",
+    "vibe": "Playful, High-Energy, Rounded, Tactile"
+  },
+  "typography": {
+    "headings": {
+      "family": "Fredoka, 'Comic Sans MS', sans-serif",
+      "weight": "700",
+      "style": "Rounded and Bouncy",
+      "usage": "All main titles, game over screens, score displays"
+    },
+    "body": {
+      "family": "Nunito, sans-serif",
+      "weight": "500",
+      "usage": "Instructions, buttons, settings"
+    },
+    "rules": [
+      "Use 'tracking-wide' for headings to make them feel friendly.",
+      "Headings should be massive on desktop (text-6xl) and punchy on mobile (text-4xl).",
+      "Use 'text-stroke' effects (CSS) for the 'Game Over' text to mimic arcade styles."
+    ]
+  },
+  "colors": {
+    "palette": {
+      "primary": "#F43F5E",
+      "secondary": "#8B5CF6",
+      "background": "#FEFCE8",
+      "surface": "#FFFFFF",
+      "accent": "#84CC16",
+      "text": "#1E293B",
+      "border": "#FCD34D"
+    },
+    "usage": {
+      "background": "bg-yellow-50 (Soft sunny vibe)",
+      "buttons": "bg-rose-500 hover:bg-rose-600 text-white (High contrast)",
+      "game_canvas": "bg-sky-300 (Default sky)",
+      "cards": "bg-white border-4 border-yellow-300 shadow-[8px_8px_0px_0px_rgba(253,224,71,1)]"
+    },
+    "gradients": [
+      "bg-gradient-to-b from-sky-300 to-sky-100 (Sky)",
+      "bg-gradient-to-r from-rose-400 to-orange-300 (Sunset mode)"
+    ]
+  },
+  "layout": {
+    "spacing": "Comfortable (p-6 to p-8). Avoid cramping.",
+    "radius": "rounded-3xl (Super rounded corners everywhere)",
+    "shadows": "Hard shadows (Neo-Brutalism Lite). Example: shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]",
+    "grid_strategy": "Mobile-first stack. Desktop: 'The Arcade Cabinet' layout - Game on left/center, controls in a floating panel."
+  },
+  "components": {
+    "buttons": {
+      "style": "Pill-shaped or Super Rounded Rectangles",
+      "animation": "active:scale-95 transition-transform hover:-translate-y-1 hover:shadow-lg",
+      "classes": "rounded-full font-black uppercase tracking-wider border-2 border-black"
+    },
+    "cards": {
+      "style": "Bento-style playful containers",
+      "classes": "bg-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-6"
+    },
+    "inputs": {
+      "style": "Chunky inputs",
+      "classes": "h-12 rounded-xl border-2 border-slate-300 focus:border-rose-500 focus:ring-4 focus:ring-rose-100"
+    }
+  },
+  "game_engine": {
+    "type": "Canvas API (HTML5 <canvas>)",
+    "physics": "Gravity-based (dy, gravity, jump_strength)",
+    "rendering": {
+      "player": "Draw circular image with rotation based on velocity",
+      "obstacle": "Draw 'Pipe' images. TRICK: If user uploads a face, repeat it vertically OR place it as a 'badge' on a standard green pipe.",
+      "background": "Parallax scrolling clouds"
+    },
+    "assets": {
+      "default_player": "https://images.unsplash.com/photo-1739582814657-10931286d7a5?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "default_obstacle": "https://images.unsplash.com/photo-1662374162155-2552f45b9f37?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "default_bg": "https://images.unsplash.com/photo-1591985791672-89704b97afab?crop=entropy&cs=srgb&fm=jpg&q=85"
+    }
+  },
+  "features": {
+    "customization": {
+      "player_upload": "File input -> FileReader -> Base64 -> Canvas Image",
+      "obstacle_upload": "File input -> Pattern/Stretch logic",
+      "sound_upload": "File input -> Audio Context"
+    },
+    "adsense": {
+      "placement": "Top banner (mobile) or Side skyscraper (desktop). MUST be a placeholder component with gray background and 'AdSpace' text.",
+      "classes": "w-full h-[90px] bg-slate-200 flex items-center justify-center border-2 border-dashed border-slate-400 rounded-xl my-4"
+    },
+    "virality": {
+      "share_card": "Generate a visual 'Score Card' using html2canvas or similar. Show 'I scored X with [Face Image]!'",
+      "meme_mode": "Randomize physics or sounds for chaos."
+    }
+  },
+  "image_urls": {
+    "player": [
+      "https://images.unsplash.com/photo-1739582814657-10931286d7a5?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "https://images.unsplash.com/photo-1613992519026-c1a3bb8341ff?crop=entropy&cs=srgb&fm=jpg&q=85"
+    ],
+    "obstacle": [
+      "https://images.unsplash.com/photo-1662374162155-2552f45b9f37?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "https://images.unsplash.com/photo-1646236731457-18f0c8a6d188?crop=entropy&cs=srgb&fm=jpg&q=85"
+    ],
+    "background": [
+      "https://images.unsplash.com/photo-1591985791672-89704b97afab?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "https://images.unsplash.com/photo-1615662414451-193cfea527f7?crop=entropy&cs=srgb&fm=jpg&q=85"
+    ]
+  },
+  "instructions_to_main_agent": [
+    "1. SETUP: Install 'lucide-react' for icons. Use 'sonner' for toasts.",
+    "2. GAME LOOP: Create a 'useGameLoop' hook that handles the requestAnimationFrame. Keep logic separate from rendering.",
+    "3. UPLOADS: Use simple <input type='file'> hidden behind beautiful custom buttons.",
+    "4. AUDIO: Use the Web Audio API or simple HTML5 Audio for sound effects (jump, die, score).",
+    "5. RESPONSIVENESS: The Canvas must resize dynamically. Use a 'resize' event listener to update canvas width/height.",
+    "6. OBSTACLE TRICK: When drawing the obstacle, if it's a custom image, draw the image *inside* a standard pipe outline, or tile it. Don't just stretch a face to be 500px tall.",
+    "7. ADS: Place the AdSense placeholder prominently but don't break the game flow.",
+    "8. SCORE CARD: Create a 'ResultsModal' that pops up on death. It should have a 'Share' button that copies text/link to clipboard."
+  ],
+  "universal_guidelines": [
+    "Do not use generic gradients.",
+    "Use 'Fredoka' or 'Nunito' from Google Fonts (via import in index.css).",
+    "Make it fun! Add confetti on high score.",
+    "Ensure touch controls work perfectly on mobile (touchstart = jump)."
+  ]
+}
