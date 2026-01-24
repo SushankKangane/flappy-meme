@@ -87,9 +87,27 @@ function App() {
 
   const playHitSound = () => {
     if (hitSound) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      
+      if (audioTimeoutRef.current) {
+        clearTimeout(audioTimeoutRef.current);
+      }
+      
       const audio = new Audio(hitSound);
       audio.volume = 0.5;
+      audioRef.current = audio;
+      
       audio.play().catch(e => console.log('Audio play failed:', e));
+      
+      audioTimeoutRef.current = setTimeout(() => {
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
+      }, HIT_SOUND_DURATION);
     }
   };
 
