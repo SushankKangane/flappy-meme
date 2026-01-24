@@ -9,6 +9,7 @@ const PIPE_WIDTH = 80;
 const PIPE_GAP = 200;
 const PIPE_SPEED = 3;
 const PLAYER_SIZE = 50;
+const HIT_SOUND_DURATION = 3000;
 
 function App() {
   const [gameState, setGameState] = useState('setup');
