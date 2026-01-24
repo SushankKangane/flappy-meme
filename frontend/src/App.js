@@ -116,6 +116,13 @@ function App() {
     pipesRef.current = [{ x: 600, topHeight: Math.random() * 200 + 100 }];
     scoreRef.current = 0;
     setScore(0);
+    
+    cloudsRef.current = [
+      { x: 100, y: 80, size: 60, speed: 0.5 },
+      { x: 300, y: 150, size: 80, speed: 0.3 },
+      { x: 500, y: 100, size: 70, speed: 0.4 },
+      { x: 700, y: 180, size: 90, speed: 0.35 }
+    ];
   };
 
   const startGame = () => {
