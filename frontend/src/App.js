@@ -481,7 +481,7 @@ function App() {
                 <button
                   onClick={() => {
                     setShowResults(false);
-                    setGameState('setup');
+                    setTimeout(() => setGameState('setup'), 100);
                   }}
                   className="upload-button w-full bg-slate-700 text-white px-6 py-4 rounded-full flex items-center justify-center gap-2"
                   data-testid="new-game-button"
