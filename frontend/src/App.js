@@ -27,6 +27,9 @@ function App() {
   const scoreRef = useRef(0);
   const playerImgRef = useRef(null);
   const obstacleImgRef = useRef(null);
+  const cloudsRef = useRef([]);
+  const audioRef = useRef(null);
+  const audioTimeoutRef = useRef(null);
 
   useEffect(() => {
     const img = new Image();
