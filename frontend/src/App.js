@@ -32,6 +32,18 @@ function App() {
   const audioTimeoutRef = useRef(null);
 
   useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+      if (audioTimeoutRef.current) {
+        clearTimeout(audioTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.src = playerImage;
