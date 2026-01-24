@@ -169,14 +169,94 @@ function App() {
     const width = canvas.width;
     const height = canvas.height;
 
+    const drawCloud = (x, y, size) => {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.beginPath();
+      ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+      ctx.arc(x + size * 0.4, y - size * 0.2, size * 0.4, 0, Math.PI * 2);
+      ctx.arc(x + size * 0.8, y, size * 0.5, 0, Math.PI * 2);
+      ctx.arc(x + size * 0.6, y + size * 0.2, size * 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    };
+
+    const drawPipe = (x, y, pipeHeight, isTop) => {
+      const gradient = ctx.createLinearGradient(x, 0, x + PIPE_WIDTH, 0);
+      gradient.addColorStop(0, '#22c55e');
+      gradient.addColorStop(0.5, '#16a34a');
+      gradient.addColorStop(1, '#15803d');
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(x, y, PIPE_WIDTH, pipeHeight);
+      
+      ctx.strokeStyle = '#14532d';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, PIPE_WIDTH, pipeHeight);
+      
+      const capHeight = 30;
+      const capWidth = PIPE_WIDTH + 10;
+      const capX = x - 5;
+      
+      if (isTop) {
+        const capY = pipeHeight - capHeight;
+        const capGradient = ctx.createLinearGradient(capX, capY, capX, capY + capHeight);
+        capGradient.addColorStop(0, '#4ade80');
+        capGradient.addColorStop(1, '#22c55e');
+        ctx.fillStyle = capGradient;
+        
+        ctx.fillRect(capX, capY, capWidth, capHeight);
+        ctx.strokeStyle = '#14532d';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(capX, capY, capWidth, capHeight);
+        
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(capX, capY + capHeight - 5, capWidth, 5);
+      } else {
+        const capGradient = ctx.createLinearGradient(capX, y, capX, y + capHeight);
+        capGradient.addColorStop(0, '#22c55e');
+        capGradient.addColorStop(1, '#16a34a');
+        ctx.fillStyle = capGradient;
+        
+        ctx.fillRect(capX, y, capWidth, capHeight);
+        ctx.strokeStyle = '#14532d';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(capX, y, capWidth, capHeight);
+        
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.fillRect(capX, y, capWidth, 5);
+      }
+    };
+
     const gameLoop = () => {
-      ctx.fillStyle = '#7DD3FC';
+      const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+      bgGradient.addColorStop(0, '#87CEEB');
+      bgGradient.addColorStop(0.7, '#B0E0E6');
+      bgGradient.addColorStop(1, '#F0F8FF');
+      ctx.fillStyle = bgGradient;
       ctx.fillRect(0, 0, width, height);
+      
+      cloudsRef.current.forEach(cloud => {
+        cloud.x -= cloud.speed;
+        if (cloud.x + cloud.size < 0) {
+          cloud.x = width + cloud.size;
+          cloud.y = Math.random() * (height * 0.4) + 50;
+        }
+        drawCloud(cloud.x, cloud.y, cloud.size);
+      });
+
+      ctx.fillStyle = '#90EE90';
+      ctx.fillRect(0, height - 100, width, 100);
+      
+      for (let i = 0; i < width; i += 30) {
+        ctx.fillStyle = '#228B22';
+        ctx.beginPath();
+        ctx.arc(i, height - 100, 15, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       playerRef.current.velocity += GRAVITY;
       playerRef.current.y += playerRef.current.velocity;
 
-      if (playerRef.current.y + PLAYER_SIZE > height || playerRef.current.y < 0) {
+      if (playerRef.current.y + PLAYER_SIZE > height - 100 || playerRef.current.y < 0) {
         endGame();
         return;
       }
@@ -188,27 +268,26 @@ function App() {
       if (pipesRef.current.length === 0 || pipesRef.current[pipesRef.current.length - 1].x < width - 300) {
         pipesRef.current.push({
           x: width,
-          topHeight: Math.random() * (height - PIPE_GAP - 200) + 100
+          topHeight: Math.random() * (height - PIPE_GAP - 300) + 100
         });
       }
 
       pipesRef.current = pipesRef.current.filter(pipe => pipe.x > -PIPE_WIDTH);
 
       pipesRef.current.forEach(pipe => {
-        ctx.fillStyle = '#10B981';
-        ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
-        ctx.fillRect(pipe.x, pipe.topHeight + PIPE_GAP, PIPE_WIDTH, height - pipe.topHeight - PIPE_GAP);
+        drawPipe(pipe.x, 0, pipe.topHeight, true);
+        drawPipe(pipe.x, pipe.topHeight + PIPE_GAP, height - pipe.topHeight - PIPE_GAP - 100, false);
 
         if (obstacleImgRef.current) {
           const imgSize = 60;
           ctx.save();
           ctx.beginPath();
-          ctx.arc(pipe.x + PIPE_WIDTH / 2, pipe.topHeight - 30, 35, 0, Math.PI * 2);
+          ctx.arc(pipe.x + PIPE_WIDTH / 2, pipe.topHeight - 15, 35, 0, Math.PI * 2);
           ctx.clip();
           ctx.drawImage(
             obstacleImgRef.current,
             pipe.x + PIPE_WIDTH / 2 - imgSize / 2,
-            pipe.topHeight - 30 - imgSize / 2,
+            pipe.topHeight - 15 - imgSize / 2,
             imgSize,
             imgSize
           );
@@ -216,12 +295,12 @@ function App() {
 
           ctx.save();
           ctx.beginPath();
-          ctx.arc(pipe.x + PIPE_WIDTH / 2, pipe.topHeight + PIPE_GAP + 30, 35, 0, Math.PI * 2);
+          ctx.arc(pipe.x + PIPE_WIDTH / 2, pipe.topHeight + PIPE_GAP + 15, 35, 0, Math.PI * 2);
           ctx.clip();
           ctx.drawImage(
             obstacleImgRef.current,
             pipe.x + PIPE_WIDTH / 2 - imgSize / 2,
-            pipe.topHeight + PIPE_GAP + 30 - imgSize / 2,
+            pipe.topHeight + PIPE_GAP + 15 - imgSize / 2,
             imgSize,
             imgSize
           );
