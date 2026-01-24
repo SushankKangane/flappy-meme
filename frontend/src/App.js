@@ -1,52 +1,499 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import "./App.css";
+import { Upload, Play, RotateCcw, Share2, Volume2 } from 'lucide-react';
+import { Toaster, toast } from 'sonner';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const GRAVITY = 0.5;
+const JUMP_STRENGTH = -10;
+const PIPE_WIDTH = 80;
+const PIPE_GAP = 200;
+const PIPE_SPEED = 3;
+const PLAYER_SIZE = 50;
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+function App() {
+  const [gameState, setGameState] = useState('setup');
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+  const [playerImage, setPlayerImage] = useState('https://images.unsplash.com/photo-1739582814657-10931286d7a5?crop=entropy&cs=srgb&fm=jpg&q=85&w=200');
+  const [obstacleImage, setObstacleImage] = useState('https://images.unsplash.com/photo-1662374162155-2552f45b9f37?crop=entropy&cs=srgb&fm=jpg&q=85&w=200');
+  const [hitSound, setHitSound] = useState(null);
+  const [showResults, setShowResults] = useState(false);
+
+  const canvasRef = useRef(null);
+  const gameLoopRef = useRef(null);
+  const playerRef = useRef({ y: 250, velocity: 0 });
+  const pipesRef = useRef([]);
+  const scoreRef = useRef(0);
+  const playerImgRef = useRef(null);
+  const obstacleImgRef = useRef(null);
+
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = playerImage;
+    img.onload = () => {
+      playerImgRef.current = img;
+    };
+  }, [playerImage]);
+
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = obstacleImage;
+    img.onload = () => {
+      obstacleImgRef.current = img;
+    };
+  }, [obstacleImage]);
+
+  const handlePlayerImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setPlayerImage(event.target.result);
+        toast.success('Player image uploaded!');
+      };
+      reader.readAsDataURL(file);
     }
   };
 
+  const handleObstacleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setObstacleImage(event.target.result);
+        toast.success('Obstacle image uploaded!');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSoundUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setHitSound(event.target.result);
+        toast.success('Hit sound uploaded!');
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const playHitSound = () => {
+    if (hitSound) {
+      const audio = new Audio(hitSound);
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log('Audio play failed:', e));
+    }
+  };
+
+  const initGame = () => {
+    playerRef.current = { y: 250, velocity: 0 };
+    pipesRef.current = [{ x: 600, topHeight: Math.random() * 200 + 100 }];
+    scoreRef.current = 0;
+    setScore(0);
+  };
+
+  const startGame = () => {
+    initGame();
+    setGameState('playing');
+    setShowResults(false);
+  };
+
+  const jump = useCallback(() => {
+    if (gameState === 'playing') {
+      playerRef.current.velocity = JUMP_STRENGTH;
+    }
+  }, [gameState]);
+
   useEffect(() => {
-    helloWorldApi();
-  }, []);
+    const handleKeyPress = (e) => {
+      if (e.code === 'Space' || e.code === 'ArrowUp') {
+        e.preventDefault();
+        jump();
+      }
+    };
+
+    const handleTouchStart = (e) => {
+      e.preventDefault();
+      jump();
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    window.addEventListener('touchstart', handleTouchStart);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+      window.removeEventListener('touchstart', handleTouchStart);
+    };
+  }, [jump]);
+
+  useEffect(() => {
+    if (gameState !== 'playing') return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    const gameLoop = () => {
+      ctx.fillStyle = '#7DD3FC';
+      ctx.fillRect(0, 0, width, height);
+
+      playerRef.current.velocity += GRAVITY;
+      playerRef.current.y += playerRef.current.velocity;
+
+      if (playerRef.current.y + PLAYER_SIZE > height || playerRef.current.y < 0) {
+        endGame();
+        return;
+      }
+
+      pipesRef.current.forEach(pipe => {
+        pipe.x -= PIPE_SPEED;
+      });
+
+      if (pipesRef.current.length === 0 || pipesRef.current[pipesRef.current.length - 1].x < width - 300) {
+        pipesRef.current.push({
+          x: width,
+          topHeight: Math.random() * (height - PIPE_GAP - 200) + 100
+        });
+      }
+
+      pipesRef.current = pipesRef.current.filter(pipe => pipe.x > -PIPE_WIDTH);
+
+      pipesRef.current.forEach(pipe => {
+        ctx.fillStyle = '#10B981';
+        ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
+        ctx.fillRect(pipe.x, pipe.topHeight + PIPE_GAP, PIPE_WIDTH, height - pipe.topHeight - PIPE_GAP);
+
+        if (obstacleImgRef.current) {
+          const imgSize = 60;
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(pipe.x + PIPE_WIDTH / 2, pipe.topHeight - 30, 35, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.drawImage(
+            obstacleImgRef.current,
+            pipe.x + PIPE_WIDTH / 2 - imgSize / 2,
+            pipe.topHeight - 30 - imgSize / 2,
+            imgSize,
+            imgSize
+          );
+          ctx.restore();
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(pipe.x + PIPE_WIDTH / 2, pipe.topHeight + PIPE_GAP + 30, 35, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.drawImage(
+            obstacleImgRef.current,
+            pipe.x + PIPE_WIDTH / 2 - imgSize / 2,
+            pipe.topHeight + PIPE_GAP + 30 - imgSize / 2,
+            imgSize,
+            imgSize
+          );
+          ctx.restore();
+        }
+
+        const playerLeft = width / 4;
+        const playerRight = playerLeft + PLAYER_SIZE;
+        const playerTop = playerRef.current.y;
+        const playerBottom = playerTop + PLAYER_SIZE;
+
+        const pipeLeft = pipe.x;
+        const pipeRight = pipe.x + PIPE_WIDTH;
+
+        if (playerRight > pipeLeft && playerLeft < pipeRight) {
+          if (playerTop < pipe.topHeight || playerBottom > pipe.topHeight + PIPE_GAP) {
+            endGame();
+            return;
+          }
+        }
+
+        if (pipe.x + PIPE_WIDTH < width / 4 && !pipe.scored) {
+          pipe.scored = true;
+          scoreRef.current += 1;
+          setScore(scoreRef.current);
+        }
+      });
+
+      ctx.save();
+      ctx.translate(width / 4 + PLAYER_SIZE / 2, playerRef.current.y + PLAYER_SIZE / 2);
+      ctx.rotate(Math.min(playerRef.current.velocity * 0.05, 1.5));
+      if (playerImgRef.current) {
+        ctx.beginPath();
+        ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(
+          playerImgRef.current,
+          -PLAYER_SIZE / 2,
+          -PLAYER_SIZE / 2,
+          PLAYER_SIZE,
+          PLAYER_SIZE
+        );
+      } else {
+        ctx.fillStyle = '#F43F5E';
+        ctx.beginPath();
+        ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      gameLoopRef.current = requestAnimationFrame(gameLoop);
+    };
+
+    gameLoop();
+
+    return () => {
+      if (gameLoopRef.current) {
+        cancelAnimationFrame(gameLoopRef.current);
+      }
+    };
+  }, [gameState]);
+
+  const endGame = () => {
+    playHitSound();
+    setGameState('gameover');
+    setShowResults(true);
+    if (scoreRef.current > highScore) {
+      setHighScore(scoreRef.current);
+    }
+  };
+
+  const shareScore = () => {
+    const text = `I scored ${score} points in this viral Flappy game! Can you beat me? 🎮`;
+    if (navigator.share) {
+      navigator.share({
+        title: 'My Game Score',
+        text: text,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(text);
+      toast.success('Score copied to clipboard!');
+    }
+  };
 
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+    <div className="min-h-screen bg-yellow-50">
+      <Toaster position="top-center" richColors />
+      
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        <h1 className="game-title text-center text-5xl md:text-7xl text-slate-800 mb-2 tracking-wide">
+          🎮 FLAPPY MEME
+        </h1>
+        <p className="text-center text-slate-600 mb-8 text-lg">
+          Customize. Play. Go Viral! 🚀
+        </p>
 
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
+        <div className="mb-6 w-full h-[90px] bg-slate-200 flex items-center justify-center border-2 border-dashed border-slate-400 rounded-xl">
+          <span className="text-slate-500 font-bold">📢 Ad Space - Google AdSense Placeholder</span>
+        </div>
+
+        {gameState === 'setup' && (
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="bg-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-8">
+              <h2 className="game-title text-2xl mb-6 text-slate-800">🎨 Customize Your Game</h2>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-lg font-bold mb-3 text-slate-700">Player Image</label>
+                  <div className="flex items-center gap-4">
+                    <img 
+                      src={playerImage} 
+                      alt="Player" 
+                      className="w-20 h-20 rounded-full border-4 border-rose-500 object-cover"
+                    />
+                    <label className="upload-button bg-rose-500 text-white px-6 py-3 rounded-full flex items-center gap-2">
+                      <Upload size={20} />
+                      Upload
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePlayerImageUpload}
+                        className="hidden"
+                        data-testid="player-image-upload"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-lg font-bold mb-3 text-slate-700">Obstacle Image</label>
+                  <div className="flex items-center gap-4">
+                    <img 
+                      src={obstacleImage} 
+                      alt="Obstacle" 
+                      className="w-20 h-20 rounded-full border-4 border-lime-500 object-cover"
+                    />
+                    <label className="upload-button bg-lime-500 text-white px-6 py-3 rounded-full flex items-center gap-2">
+                      <Upload size={20} />
+                      Upload
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleObstacleImageUpload}
+                        className="hidden"
+                        data-testid="obstacle-image-upload"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-lg font-bold mb-3 text-slate-700">Hit Sound</label>
+                  <label className="upload-button bg-purple-500 text-white px-6 py-3 rounded-full flex items-center gap-2 w-fit">
+                    <Volume2 size={20} />
+                    {hitSound ? 'Sound Uploaded ✓' : 'Upload Sound'}
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      onChange={handleSoundUpload}
+                      className="hidden"
+                      data-testid="sound-upload"
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <button
+                onClick={startGame}
+                className="upload-button w-full mt-8 bg-rose-500 hover:bg-rose-600 text-white px-8 py-4 rounded-full flex items-center justify-center gap-3 text-xl"
+                data-testid="start-game-button"
+              >
+                <Play size={28} />
+                START GAME
+              </button>
+            </div>
+
+            <div className="bg-white rounded-3xl border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-8">
+              <h2 className="game-title text-2xl mb-6 text-slate-800">📖 How to Play</h2>
+              <div className="space-y-4 text-slate-700">
+                <div className="flex items-start gap-3">
+                  <span className="text-3xl">🖱️</span>
+                  <div>
+                    <p className="font-bold">Click / Tap / Space</p>
+                    <p className="text-sm">Make your player jump</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-3xl">🎯</span>
+                  <div>
+                    <p className="font-bold">Avoid Obstacles</p>
+                    <p className="text-sm">Don't hit the pipes or edges</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-3xl">⭐</span>
+                  <div>
+                    <p className="font-bold">Score Points</p>
+                    <p className="text-sm">Pass through gaps to score</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-3xl">🎨</span>
+                  <div>
+                    <p className="font-bold">Customize Everything</p>
+                    <p className="text-sm">Use your own images and sounds!</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 p-6 bg-yellow-100 rounded-2xl border-2 border-yellow-400">
+                <p className="text-center text-lg font-bold text-slate-800">
+                  High Score: <span className="text-rose-500 text-3xl">{highScore}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {(gameState === 'playing' || gameState === 'gameover') && (
+          <div className="flex flex-col items-center">
+            <div className="mb-6 text-center">
+              <p className="score-display text-slate-800">{score}</p>
+              <p className="text-slate-600 font-bold">SCORE</p>
+            </div>
+
+            <canvas
+              ref={canvasRef}
+              width={800}
+              height={600}
+              onClick={jump}
+              className="game-canvas bg-sky-300 max-w-full"
+              data-testid="game-canvas"
+            />
+
+            <p className="mt-4 text-slate-600 text-center">
+              Click canvas or press SPACE to jump
+            </p>
+
+            {gameState === 'gameover' && (
+              <button
+                onClick={() => setGameState('setup')}
+                className="upload-button mt-6 bg-slate-700 text-white px-8 py-4 rounded-full flex items-center gap-3"
+                data-testid="back-to-setup-button"
+              >
+                <RotateCcw size={24} />
+                Back to Setup
+              </button>
+            )}
+          </div>
+        )}
+
+        {showResults && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-3xl border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8 max-w-md w-full" data-testid="results-modal">
+              <h2 className="game-title text-4xl text-center mb-4 text-slate-800">GAME OVER!</h2>
+              
+              <div className="text-center mb-6">
+                <p className="text-6xl mb-2">🎮</p>
+                <p className="text-slate-600 text-lg mb-2">Your Score</p>
+                <p className="score-display text-rose-500" data-testid="final-score">{score}</p>
+                
+                {score > highScore - score && score > 0 && (
+                  <p className="text-lime-600 font-bold mt-2 text-xl">🎉 New High Score!</p>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={startGame}
+                  className="upload-button w-full bg-rose-500 text-white px-6 py-4 rounded-full flex items-center justify-center gap-2"
+                  data-testid="play-again-button"
+                >
+                  <Play size={24} />
+                  Play Again
+                </button>
+
+                <button
+                  onClick={shareScore}
+                  className="upload-button w-full bg-purple-500 text-white px-6 py-4 rounded-full flex items-center justify-center gap-2"
+                  data-testid="share-score-button"
+                >
+                  <Share2 size={24} />
+                  Share Score
+                </button>
+
+                <button
+                  onClick={() => {
+                    setShowResults(false);
+                    setGameState('setup');
+                  }}
+                  className="upload-button w-full bg-slate-700 text-white px-6 py-4 rounded-full flex items-center justify-center gap-2"
+                  data-testid="new-game-button"
+                >
+                  <RotateCcw size={24} />
+                  New Game
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
