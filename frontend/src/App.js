@@ -47,6 +47,9 @@ function App() {
       if (audioTimeoutRef.current) {
         clearTimeout(audioTimeoutRef.current);
       }
+      if (speedIntervalRef.current) {
+        clearInterval(speedIntervalRef.current);
+      }
     };
   }, []);
 
