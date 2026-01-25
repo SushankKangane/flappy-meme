@@ -305,7 +305,7 @@ function App() {
       }
 
       pipesRef.current.forEach(pipe => {
-        pipe.x -= PIPE_SPEED;
+        pipe.x -= pipeSpeedRef.current;
       });
 
       if (pipesRef.current.length === 0 || pipesRef.current[pipesRef.current.length - 1].x < width - 300) {
