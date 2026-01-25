@@ -499,20 +499,7 @@ function App() {
         cancelAnimationFrame(gameLoopRef.current);
       }
     };
-  }, [gameState]);
-
-  const endGame = () => {
-    playHitSound();
-    if (speedIntervalRef.current) {
-      clearInterval(speedIntervalRef.current);
-      speedIntervalRef.current = null;
-    }
-    setGameState('gameover');
-    setShowResults(true);
-    if (scoreRef.current > highScore) {
-      setHighScore(scoreRef.current);
-    }
-  };
+  }, [gameState, endGame]);
 
   const shareScore = () => {
     const text = `I scored ${score} points in this viral Flappy game! Can you beat me? 🎮`;
