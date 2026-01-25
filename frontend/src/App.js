@@ -6,8 +6,11 @@ import { Toaster, toast } from 'sonner';
 const GRAVITY = 0.5;
 const JUMP_STRENGTH = -10;
 const PIPE_WIDTH = 80;
-const PIPE_GAP = 200;
-const PIPE_SPEED = 3;
+const PIPE_GAP = 230; // Increased gap for better playability
+const INITIAL_PIPE_SPEED = 3;
+const SPEED_INCREASE_INTERVAL = 10000; // 10 seconds
+const SPEED_INCREASE_AMOUNT = 0.4;
+const MAX_PIPE_SPEED = 8;
 const PLAYER_SIZE = 50;
 const HIT_SOUND_DURATION = 3000;
 
