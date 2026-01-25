@@ -15,13 +15,14 @@ const PLAYER_SIZE = 50;
 const HIT_SOUND_DURATION = 3000;
 
 function App() {
-  const [gameState, setGameState] = useState('setup');
+  const [gameState, setGameState] = useState('setup'); // 'setup', 'ready', 'playing', 'gameover'
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
   const [playerImage, setPlayerImage] = useState('https://images.unsplash.com/photo-1739582814657-10931286d7a5?crop=entropy&cs=srgb&fm=jpg&q=85&w=200');
   const [obstacleImage, setObstacleImage] = useState('https://images.unsplash.com/photo-1662374162155-2552f45b9f37?crop=entropy&cs=srgb&fm=jpg&q=85&w=200');
   const [hitSound, setHitSound] = useState(null);
   const [showResults, setShowResults] = useState(false);
+  const [currentSpeed, setCurrentSpeed] = useState(INITIAL_PIPE_SPEED);
 
   const canvasRef = useRef(null);
   const gameLoopRef = useRef(null);
@@ -33,6 +34,9 @@ function App() {
   const cloudsRef = useRef([]);
   const audioRef = useRef(null);
   const audioTimeoutRef = useRef(null);
+  const pipeSpeedRef = useRef(INITIAL_PIPE_SPEED);
+  const gameStartTimeRef = useRef(null);
+  const speedIntervalRef = useRef(null);
 
   useEffect(() => {
     return () => {
