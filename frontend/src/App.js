@@ -158,18 +158,20 @@ function App() {
   }, [hitSound]);
 
   const initGame = () => {
-    playerRef.current = { y: 250, velocity: 0 };
+    // Center player based on canvas height
+    playerRef.current = { y: canvasSize.height / 2 - PLAYER_SIZE, velocity: 0 };
     pipesRef.current = [];
     scoreRef.current = 0;
     pipeSpeedRef.current = INITIAL_PIPE_SPEED;
     setScore(0);
     setCurrentSpeed(INITIAL_PIPE_SPEED);
     
+    // Spread clouds across canvas width
     cloudsRef.current = [
-      { x: 100, y: 80, size: 60, speed: 0.5 },
-      { x: 300, y: 150, size: 80, speed: 0.3 },
-      { x: 500, y: 100, size: 70, speed: 0.4 },
-      { x: 700, y: 180, size: 90, speed: 0.35 }
+      { x: canvasSize.width * 0.1, y: 80, size: 60, speed: 0.5 },
+      { x: canvasSize.width * 0.4, y: 150, size: 80, speed: 0.3 },
+      { x: canvasSize.width * 0.6, y: 100, size: 70, speed: 0.4 },
+      { x: canvasSize.width * 0.9, y: 180, size: 90, speed: 0.35 }
     ];
   };
 
@@ -180,7 +182,12 @@ function App() {
   };
 
   const beginPlaying = () => {
-    pipesRef.current = [{ x: 600, topHeight: Math.random() * 200 + 100 }];
+    // First pipe starts from right edge
+    const groundHeight = isMobile ? 60 : 100;
+    pipesRef.current = [{ 
+      x: canvasSize.width, 
+      topHeight: Math.random() * (canvasSize.height - PIPE_GAP - groundHeight - 100) + 60 
+    }];
     gameStartTimeRef.current = Date.now();
     setGameState('playing');
     
