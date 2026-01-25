@@ -620,7 +620,7 @@ function App() {
                   <span className="text-3xl">🎯</span>
                   <div>
                     <p className="font-bold">Avoid Obstacles</p>
-                    <p className="text-sm">Don't hit the pipes or edges</p>
+                    <p className="text-sm">{"Don't hit the pipes or edges"}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
