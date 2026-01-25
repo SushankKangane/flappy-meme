@@ -170,7 +170,10 @@ function App() {
   };
 
   const jump = useCallback(() => {
-    if (gameState === 'playing') {
+    if (gameState === 'ready') {
+      beginPlaying();
+      playerRef.current.velocity = JUMP_STRENGTH;
+    } else if (gameState === 'playing') {
       playerRef.current.velocity = JUMP_STRENGTH;
     }
   }, [gameState]);
