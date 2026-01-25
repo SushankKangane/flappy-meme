@@ -135,9 +135,11 @@ function App() {
 
   const initGame = () => {
     playerRef.current = { y: 250, velocity: 0 };
-    pipesRef.current = [{ x: 600, topHeight: Math.random() * 200 + 100 }];
+    pipesRef.current = [];
     scoreRef.current = 0;
+    pipeSpeedRef.current = INITIAL_PIPE_SPEED;
     setScore(0);
+    setCurrentSpeed(INITIAL_PIPE_SPEED);
     
     cloudsRef.current = [
       { x: 100, y: 80, size: 60, speed: 0.5 },
@@ -149,8 +151,22 @@ function App() {
 
   const startGame = () => {
     initGame();
-    setGameState('playing');
+    setGameState('ready'); // Set to ready state, waiting for first click
     setShowResults(false);
+  };
+
+  const beginPlaying = () => {
+    pipesRef.current = [{ x: 600, topHeight: Math.random() * 200 + 100 }];
+    gameStartTimeRef.current = Date.now();
+    setGameState('playing');
+    
+    // Start speed increase interval
+    speedIntervalRef.current = setInterval(() => {
+      if (pipeSpeedRef.current < MAX_PIPE_SPEED) {
+        pipeSpeedRef.current = Math.min(pipeSpeedRef.current + SPEED_INCREASE_AMOUNT, MAX_PIPE_SPEED);
+        setCurrentSpeed(pipeSpeedRef.current);
+      }
+    }, SPEED_INCREASE_INTERVAL);
   };
 
   const jump = useCallback(() => {
