@@ -181,7 +181,7 @@ function App() {
     setShowResults(false);
   };
 
-  const beginPlaying = () => {
+  const beginPlaying = useCallback(() => {
     // First pipe starts from right edge
     const groundHeight = isMobile ? 60 : 100;
     pipesRef.current = [{ 
@@ -198,7 +198,7 @@ function App() {
         setCurrentSpeed(pipeSpeedRef.current);
       }
     }, SPEED_INCREASE_INTERVAL);
-  };
+  }, [isMobile, canvasSize]);
 
   const endGame = useCallback(() => {
     playHitSound();
@@ -220,7 +220,7 @@ function App() {
     } else if (gameState === 'playing') {
       playerRef.current.velocity = JUMP_STRENGTH;
     }
-  }, [gameState]);
+  }, [gameState, beginPlaying]);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
