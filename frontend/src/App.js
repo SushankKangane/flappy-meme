@@ -404,9 +404,12 @@ function App() {
       });
 
       if (pipesRef.current.length === 0 || pipesRef.current[pipesRef.current.length - 1].x < width - 300) {
+        // More varied pipe heights - gaps can appear from top to bottom area
+        const minTopHeight = 60; // Minimum top pipe height
+        const maxTopHeight = height - PIPE_GAP - 160; // Leave room for bottom pipe and ground
         pipesRef.current.push({
           x: width,
-          topHeight: Math.random() * (height - PIPE_GAP - 300) + 100
+          topHeight: Math.random() * (maxTopHeight - minTopHeight) + minTopHeight
         });
       }
 
