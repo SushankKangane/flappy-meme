@@ -202,6 +202,88 @@ function App() {
     };
   }, [jump, gameState]);
 
+  // Ready state - shows canvas with player stationary, waiting for click
+  useEffect(() => {
+    if (gameState !== 'ready') return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+
+    const drawReadyScreen = () => {
+      // Draw background
+      const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
+      bgGradient.addColorStop(0, '#87CEEB');
+      bgGradient.addColorStop(0.7, '#B0E0E6');
+      bgGradient.addColorStop(1, '#F0F8FF');
+      ctx.fillStyle = bgGradient;
+      ctx.fillRect(0, 0, width, height);
+      
+      // Draw clouds
+      cloudsRef.current.forEach(cloud => {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.beginPath();
+        ctx.arc(cloud.x, cloud.y, cloud.size * 0.5, 0, Math.PI * 2);
+        ctx.arc(cloud.x + cloud.size * 0.4, cloud.y - cloud.size * 0.2, cloud.size * 0.4, 0, Math.PI * 2);
+        ctx.arc(cloud.x + cloud.size * 0.8, cloud.y, cloud.size * 0.5, 0, Math.PI * 2);
+        ctx.arc(cloud.x + cloud.size * 0.6, cloud.y + cloud.size * 0.2, cloud.size * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // Draw ground
+      ctx.fillStyle = '#90EE90';
+      ctx.fillRect(0, height - 100, width, 100);
+      
+      for (let i = 0; i < width; i += 30) {
+        ctx.fillStyle = '#228B22';
+        ctx.beginPath();
+        ctx.arc(i, height - 100, 15, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Draw player stationary
+      ctx.save();
+      ctx.translate(width / 4 + PLAYER_SIZE / 2, playerRef.current.y + PLAYER_SIZE / 2);
+      if (playerImgRef.current) {
+        ctx.beginPath();
+        ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.clip();
+        ctx.drawImage(
+          playerImgRef.current,
+          -PLAYER_SIZE / 2,
+          -PLAYER_SIZE / 2,
+          PLAYER_SIZE,
+          PLAYER_SIZE
+        );
+      } else {
+        ctx.fillStyle = '#F43F5E';
+        ctx.beginPath();
+        ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Draw "Click to Start" message
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillRect(width / 2 - 150, height / 2 - 50, 300, 100);
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(width / 2 - 150, height / 2 - 50, 300, 100);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 28px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎮 TAP TO START', width / 2, height / 2);
+      ctx.font = '16px Arial';
+      ctx.fillText('Press SPACE or Click', width / 2, height / 2 + 30);
+    };
+
+    drawReadyScreen();
+  }, [gameState]);
+
   useEffect(() => {
     if (gameState !== 'playing') return;
 
