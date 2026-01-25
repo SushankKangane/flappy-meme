@@ -408,6 +408,10 @@ function App() {
 
   const endGame = () => {
     playHitSound();
+    if (speedIntervalRef.current) {
+      clearInterval(speedIntervalRef.current);
+      speedIntervalRef.current = null;
+    }
     setGameState('gameover');
     setShowResults(true);
     if (scoreRef.current > highScore) {
