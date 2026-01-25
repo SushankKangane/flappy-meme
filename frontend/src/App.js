@@ -256,6 +256,8 @@ function App() {
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
+    const groundHeight = isMobile ? 60 : 100;
+    const playerSize = isMobile ? 40 : PLAYER_SIZE;
 
     const drawReadyScreen = () => {
       // Draw background
@@ -279,101 +281,101 @@ function App() {
 
       // Draw ground
       ctx.fillStyle = '#90EE90';
-      ctx.fillRect(0, height - 100, width, 100);
+      ctx.fillRect(0, height - groundHeight, width, groundHeight);
       
       for (let i = 0; i < width; i += 30) {
         ctx.fillStyle = '#228B22';
         ctx.beginPath();
-        ctx.arc(i, height - 100, 15, 0, Math.PI * 2);
+        ctx.arc(i, height - groundHeight, 15, 0, Math.PI * 2);
         ctx.fill();
       }
 
       // Draw player stationary
       ctx.save();
-      ctx.translate(width / 4 + PLAYER_SIZE / 2, playerRef.current.y + PLAYER_SIZE / 2);
+      ctx.translate(width / 4 + playerSize / 2, playerRef.current.y + playerSize / 2);
       if (playerImgRef.current) {
         ctx.beginPath();
-        ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.arc(0, 0, playerSize / 2, 0, Math.PI * 2);
         ctx.clip();
         ctx.drawImage(
           playerImgRef.current,
-          -PLAYER_SIZE / 2,
-          -PLAYER_SIZE / 2,
-          PLAYER_SIZE,
-          PLAYER_SIZE
+          -playerSize / 2,
+          -playerSize / 2,
+          playerSize,
+          playerSize
         );
       } else {
         // Stylish gradient bird with glow effect
-        const birdGradient = ctx.createRadialGradient(0, 0, 5, 0, 0, PLAYER_SIZE / 2);
-        birdGradient.addColorStop(0, '#FFD700'); // Gold center
-        birdGradient.addColorStop(0.5, '#FF6B6B'); // Coral
-        birdGradient.addColorStop(1, '#EE5A24'); // Orange-red edge
+        const birdGradient = ctx.createRadialGradient(0, 0, 5, 0, 0, playerSize / 2);
+        birdGradient.addColorStop(0, '#FFD700');
+        birdGradient.addColorStop(0.5, '#FF6B6B');
+        birdGradient.addColorStop(1, '#EE5A24');
         
-        // Outer glow
         ctx.shadowColor = '#FF6B6B';
         ctx.shadowBlur = 15;
         
-        // Main bird body
         ctx.fillStyle = birdGradient;
         ctx.beginPath();
-        ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.arc(0, 0, playerSize / 2, 0, Math.PI * 2);
         ctx.fill();
         
-        // Reset shadow for details
         ctx.shadowBlur = 0;
         
-        // Eye white
+        // Scale features for bird size
+        const scale = playerSize / PLAYER_SIZE;
+        
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
-        ctx.ellipse(8, -5, 10, 12, 0, 0, Math.PI * 2);
+        ctx.ellipse(8 * scale, -5 * scale, 10 * scale, 12 * scale, 0, 0, Math.PI * 2);
         ctx.fill();
         
-        // Eye pupil
         ctx.fillStyle = '#1a1a2e';
         ctx.beginPath();
-        ctx.arc(10, -5, 5, 0, Math.PI * 2);
+        ctx.arc(10 * scale, -5 * scale, 5 * scale, 0, Math.PI * 2);
         ctx.fill();
         
-        // Eye shine
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
-        ctx.arc(12, -7, 2, 0, Math.PI * 2);
+        ctx.arc(12 * scale, -7 * scale, 2 * scale, 0, Math.PI * 2);
         ctx.fill();
         
-        // Beak
         ctx.fillStyle = '#FF9500';
         ctx.beginPath();
-        ctx.moveTo(PLAYER_SIZE / 2 - 5, 0);
-        ctx.lineTo(PLAYER_SIZE / 2 + 12, 3);
-        ctx.lineTo(PLAYER_SIZE / 2 - 5, 8);
+        ctx.moveTo(playerSize / 2 - 5 * scale, 0);
+        ctx.lineTo(playerSize / 2 + 12 * scale, 3 * scale);
+        ctx.lineTo(playerSize / 2 - 5 * scale, 8 * scale);
         ctx.closePath();
         ctx.fill();
         
-        // Wing
         ctx.fillStyle = '#C0392B';
         ctx.beginPath();
-        ctx.ellipse(-5, 5, 12, 8, -0.3, 0, Math.PI * 2);
+        ctx.ellipse(-5 * scale, 5 * scale, 12 * scale, 8 * scale, -0.3, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
 
-      // Draw "Click to Start" message
+      // Draw "Click to Start" message - responsive size
+      const boxWidth = isMobile ? 200 : 300;
+      const boxHeight = isMobile ? 70 : 100;
+      const fontSize = isMobile ? 20 : 28;
+      const subFontSize = isMobile ? 12 : 16;
+      
       ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillRect(width / 2 - 150, height / 2 - 50, 300, 100);
+      ctx.fillRect(width / 2 - boxWidth / 2, height / 2 - boxHeight / 2, boxWidth, boxHeight);
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 3;
-      ctx.strokeRect(width / 2 - 150, height / 2 - 50, 300, 100);
+      ctx.strokeRect(width / 2 - boxWidth / 2, height / 2 - boxHeight / 2, boxWidth, boxHeight);
       
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 28px Arial';
+      ctx.font = `bold ${fontSize}px Arial`;
       ctx.textAlign = 'center';
       ctx.fillText('🎮 TAP TO START', width / 2, height / 2);
-      ctx.font = '16px Arial';
-      ctx.fillText('Press SPACE or Click', width / 2, height / 2 + 30);
+      ctx.font = `${subFontSize}px Arial`;
+      ctx.fillText('Press SPACE or Click', width / 2, height / 2 + (isMobile ? 20 : 30));
     };
 
     drawReadyScreen();
-  }, [gameState]);
+  }, [gameState, isMobile, canvasSize]);
 
   useEffect(() => {
     if (gameState !== 'playing') return;
