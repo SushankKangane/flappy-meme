@@ -386,6 +386,13 @@ function App() {
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
+    
+    // Responsive sizing
+    const groundHeight = isMobile ? 60 : 100;
+    const playerSize = isMobile ? 40 : PLAYER_SIZE;
+    const pipeWidth = isMobile ? 60 : PIPE_WIDTH;
+    const pipeGap = isMobile ? 180 : PIPE_GAP;
+    const pipeSpacing = isMobile ? 200 : 300;
 
     const drawCloud = (x, y, size) => {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
@@ -398,20 +405,20 @@ function App() {
     };
 
     const drawPipe = (x, y, pipeHeight, isTop) => {
-      const gradient = ctx.createLinearGradient(x, 0, x + PIPE_WIDTH, 0);
+      const gradient = ctx.createLinearGradient(x, 0, x + pipeWidth, 0);
       gradient.addColorStop(0, '#22c55e');
       gradient.addColorStop(0.5, '#16a34a');
       gradient.addColorStop(1, '#15803d');
       
       ctx.fillStyle = gradient;
-      ctx.fillRect(x, y, PIPE_WIDTH, pipeHeight);
+      ctx.fillRect(x, y, pipeWidth, pipeHeight);
       
       ctx.strokeStyle = '#14532d';
       ctx.lineWidth = 2;
-      ctx.strokeRect(x, y, PIPE_WIDTH, pipeHeight);
+      ctx.strokeRect(x, y, pipeWidth, pipeHeight);
       
-      const capHeight = 30;
-      const capWidth = PIPE_WIDTH + 10;
+      const capHeight = isMobile ? 20 : 30;
+      const capWidth = pipeWidth + 10;
       const capX = x - 5;
       
       if (isTop) {
@@ -462,19 +469,19 @@ function App() {
       });
 
       ctx.fillStyle = '#90EE90';
-      ctx.fillRect(0, height - 100, width, 100);
+      ctx.fillRect(0, height - groundHeight, width, groundHeight);
       
       for (let i = 0; i < width; i += 30) {
         ctx.fillStyle = '#228B22';
         ctx.beginPath();
-        ctx.arc(i, height - 100, 15, 0, Math.PI * 2);
+        ctx.arc(i, height - groundHeight, 15, 0, Math.PI * 2);
         ctx.fill();
       }
 
       playerRef.current.velocity += GRAVITY;
       playerRef.current.y += playerRef.current.velocity;
 
-      if (playerRef.current.y + PLAYER_SIZE > height - 100 || playerRef.current.y < 0) {
+      if (playerRef.current.y + playerSize > height - groundHeight || playerRef.current.y < 0) {
         endGame();
         return;
       }
@@ -483,31 +490,31 @@ function App() {
         pipe.x -= pipeSpeedRef.current;
       });
 
-      if (pipesRef.current.length === 0 || pipesRef.current[pipesRef.current.length - 1].x < width - 300) {
-        // More varied pipe heights - gaps can appear from top to bottom area
-        const minTopHeight = 60; // Minimum top pipe height
-        const maxTopHeight = height - PIPE_GAP - 160; // Leave room for bottom pipe and ground
+      if (pipesRef.current.length === 0 || pipesRef.current[pipesRef.current.length - 1].x < width - pipeSpacing) {
+        // More varied pipe heights
+        const minTopHeight = 50;
+        const maxTopHeight = height - pipeGap - groundHeight - 50;
         pipesRef.current.push({
           x: width,
           topHeight: Math.random() * (maxTopHeight - minTopHeight) + minTopHeight
         });
       }
 
-      pipesRef.current = pipesRef.current.filter(pipe => pipe.x > -PIPE_WIDTH);
+      pipesRef.current = pipesRef.current.filter(pipe => pipe.x > -pipeWidth);
 
       pipesRef.current.forEach(pipe => {
         drawPipe(pipe.x, 0, pipe.topHeight, true);
-        drawPipe(pipe.x, pipe.topHeight + PIPE_GAP, height - pipe.topHeight - PIPE_GAP - 100, false);
+        drawPipe(pipe.x, pipe.topHeight + pipeGap, height - pipe.topHeight - pipeGap - groundHeight, false);
 
         if (obstacleImgRef.current) {
-          const imgSize = 60;
+          const imgSize = isMobile ? 40 : 60;
           ctx.save();
           ctx.beginPath();
-          ctx.arc(pipe.x + PIPE_WIDTH / 2, pipe.topHeight - 15, 35, 0, Math.PI * 2);
+          ctx.arc(pipe.x + pipeWidth / 2, pipe.topHeight - 15, imgSize / 2, 0, Math.PI * 2);
           ctx.clip();
           ctx.drawImage(
             obstacleImgRef.current,
-            pipe.x + PIPE_WIDTH / 2 - imgSize / 2,
+            pipe.x + pipeWidth / 2 - imgSize / 2,
             pipe.topHeight - 15 - imgSize / 2,
             imgSize,
             imgSize
@@ -516,12 +523,12 @@ function App() {
 
           ctx.save();
           ctx.beginPath();
-          ctx.arc(pipe.x + PIPE_WIDTH / 2, pipe.topHeight + PIPE_GAP + 15, 35, 0, Math.PI * 2);
+          ctx.arc(pipe.x + pipeWidth / 2, pipe.topHeight + pipeGap + 15, imgSize / 2, 0, Math.PI * 2);
           ctx.clip();
           ctx.drawImage(
             obstacleImgRef.current,
-            pipe.x + PIPE_WIDTH / 2 - imgSize / 2,
-            pipe.topHeight + PIPE_GAP + 15 - imgSize / 2,
+            pipe.x + pipeWidth / 2 - imgSize / 2,
+            pipe.topHeight + pipeGap + 15 - imgSize / 2,
             imgSize,
             imgSize
           );
@@ -529,92 +536,88 @@ function App() {
         }
 
         const playerLeft = width / 4;
-        const playerRight = playerLeft + PLAYER_SIZE;
+        const playerRight = playerLeft + playerSize;
         const playerTop = playerRef.current.y;
-        const playerBottom = playerTop + PLAYER_SIZE;
+        const playerBottom = playerTop + playerSize;
 
         const pipeLeft = pipe.x;
-        const pipeRight = pipe.x + PIPE_WIDTH;
+        const pipeRight = pipe.x + pipeWidth;
 
         if (playerRight > pipeLeft && playerLeft < pipeRight) {
-          if (playerTop < pipe.topHeight || playerBottom > pipe.topHeight + PIPE_GAP) {
+          if (playerTop < pipe.topHeight || playerBottom > pipe.topHeight + pipeGap) {
             endGame();
             return;
           }
         }
 
-        if (pipe.x + PIPE_WIDTH < width / 4 && !pipe.scored) {
+        if (pipe.x + pipeWidth < width / 4 && !pipe.scored) {
           pipe.scored = true;
           scoreRef.current += 1;
           setScore(scoreRef.current);
         }
       });
 
+      // Draw player
       ctx.save();
-      ctx.translate(width / 4 + PLAYER_SIZE / 2, playerRef.current.y + PLAYER_SIZE / 2);
+      ctx.translate(width / 4 + playerSize / 2, playerRef.current.y + playerSize / 2);
       ctx.rotate(Math.min(playerRef.current.velocity * 0.05, 1.5));
       if (playerImgRef.current) {
         ctx.beginPath();
-        ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.arc(0, 0, playerSize / 2, 0, Math.PI * 2);
         ctx.clip();
         ctx.drawImage(
           playerImgRef.current,
-          -PLAYER_SIZE / 2,
-          -PLAYER_SIZE / 2,
-          PLAYER_SIZE,
-          PLAYER_SIZE
+          -playerSize / 2,
+          -playerSize / 2,
+          playerSize,
+          playerSize
         );
       } else {
-        // Stylish gradient bird with glow effect
-        const birdGradient = ctx.createRadialGradient(0, 0, 5, 0, 0, PLAYER_SIZE / 2);
-        birdGradient.addColorStop(0, '#FFD700'); // Gold center
-        birdGradient.addColorStop(0.5, '#FF6B6B'); // Coral
-        birdGradient.addColorStop(1, '#EE5A24'); // Orange-red edge
+        // Stylish gradient bird
+        const birdGradient = ctx.createRadialGradient(0, 0, 5, 0, 0, playerSize / 2);
+        birdGradient.addColorStop(0, '#FFD700');
+        birdGradient.addColorStop(0.5, '#FF6B6B');
+        birdGradient.addColorStop(1, '#EE5A24');
         
-        // Outer glow
         ctx.shadowColor = '#FF6B6B';
         ctx.shadowBlur = 15;
         
-        // Main bird body
         ctx.fillStyle = birdGradient;
         ctx.beginPath();
-        ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.arc(0, 0, playerSize / 2, 0, Math.PI * 2);
         ctx.fill();
         
-        // Reset shadow for details
         ctx.shadowBlur = 0;
         
-        // Eye white
+        // Scale features
+        const scale = playerSize / PLAYER_SIZE;
+        
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
-        ctx.ellipse(8, -5, 10, 12, 0, 0, Math.PI * 2);
+        ctx.ellipse(8 * scale, -5 * scale, 10 * scale, 12 * scale, 0, 0, Math.PI * 2);
         ctx.fill();
         
-        // Eye pupil
         ctx.fillStyle = '#1a1a2e';
         ctx.beginPath();
-        ctx.arc(10, -5, 5, 0, Math.PI * 2);
+        ctx.arc(10 * scale, -5 * scale, 5 * scale, 0, Math.PI * 2);
         ctx.fill();
         
-        // Eye shine
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
-        ctx.arc(12, -7, 2, 0, Math.PI * 2);
+        ctx.arc(12 * scale, -7 * scale, 2 * scale, 0, Math.PI * 2);
         ctx.fill();
         
-        // Beak
         ctx.fillStyle = '#FF9500';
         ctx.beginPath();
-        ctx.moveTo(PLAYER_SIZE / 2 - 5, 0);
-        ctx.lineTo(PLAYER_SIZE / 2 + 12, 3);
-        ctx.lineTo(PLAYER_SIZE / 2 - 5, 8);
+        ctx.moveTo(playerSize / 2 - 5 * scale, 0);
+        ctx.lineTo(playerSize / 2 + 12 * scale, 3 * scale);
+        ctx.lineTo(playerSize / 2 - 5 * scale, 8 * scale);
         ctx.closePath();
         ctx.fill();
         
-        // Wing
         ctx.fillStyle = '#C0392B';
         ctx.beginPath();
-        ctx.ellipse(-5, 5, 12, 8, -0.3, 0, Math.PI * 2);
+        ctx.ellipse(-5 * scale, 5 * scale, 12 * scale, 8 * scale, -0.3, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
@@ -629,7 +632,7 @@ function App() {
         cancelAnimationFrame(gameLoopRef.current);
       }
     };
-  }, [gameState, endGame]);
+  }, [gameState, endGame, isMobile]);
 
   const shareScore = () => {
     const text = `I scored ${score} points in this viral Flappy game! Can you beat me? 🎮`;
