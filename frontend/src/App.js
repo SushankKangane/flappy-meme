@@ -107,7 +107,7 @@ function App() {
     }
   };
 
-  const playHitSound = () => {
+  const playHitSound = useCallback(() => {
     if (hitSound) {
       if (audioRef.current) {
         audioRef.current.pause();
@@ -131,7 +131,7 @@ function App() {
         }
       }, HIT_SOUND_DURATION);
     }
-  };
+  }, [hitSound]);
 
   const initGame = () => {
     playerRef.current = { y: 250, velocity: 0 };
