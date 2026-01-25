@@ -104,6 +104,31 @@
 
 user_problem_statement: "Game is too quickly start it should start on a click and pipe space may need to increase a little by fraction and speed of the game gradually increase after every 10 sec."
 
+backend:
+  - task: "Root API endpoint functionality"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Root endpoint (/api/) working correctly, returns {'message': 'Hello World'} with 200 status"
+
+  - task: "Status check API endpoints"
+    implemented: true
+    working: true
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "testing"
+        comment: "Both GET and POST /api/status endpoints working correctly. Can create and retrieve status checks with proper UUID, timestamp, and client_name fields"
+
 frontend:
   - task: "Start game on click instead of auto-start"
     implemented: true
