@@ -187,8 +187,10 @@ function App() {
     };
 
     const handleTouchStart = (e) => {
-      e.preventDefault();
-      jump();
+      if (gameState === 'ready' || gameState === 'playing') {
+        e.preventDefault();
+        jump();
+      }
     };
 
     window.addEventListener('keydown', handleKeyPress);
@@ -198,7 +200,7 @@ function App() {
       window.removeEventListener('keydown', handleKeyPress);
       window.removeEventListener('touchstart', handleTouchStart);
     };
-  }, [jump]);
+  }, [jump, gameState]);
 
   useEffect(() => {
     if (gameState !== 'playing') return;
