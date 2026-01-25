@@ -272,9 +272,56 @@ function App() {
           PLAYER_SIZE
         );
       } else {
-        ctx.fillStyle = '#F43F5E';
+        // Stylish gradient bird with glow effect
+        const birdGradient = ctx.createRadialGradient(0, 0, 5, 0, 0, PLAYER_SIZE / 2);
+        birdGradient.addColorStop(0, '#FFD700'); // Gold center
+        birdGradient.addColorStop(0.5, '#FF6B6B'); // Coral
+        birdGradient.addColorStop(1, '#EE5A24'); // Orange-red edge
+        
+        // Outer glow
+        ctx.shadowColor = '#FF6B6B';
+        ctx.shadowBlur = 15;
+        
+        // Main bird body
+        ctx.fillStyle = birdGradient;
         ctx.beginPath();
         ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Reset shadow for details
+        ctx.shadowBlur = 0;
+        
+        // Eye white
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.ellipse(8, -5, 10, 12, 0, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Eye pupil
+        ctx.fillStyle = '#1a1a2e';
+        ctx.beginPath();
+        ctx.arc(10, -5, 5, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Eye shine
+        ctx.fillStyle = '#FFFFFF';
+        ctx.beginPath();
+        ctx.arc(12, -7, 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Beak
+        ctx.fillStyle = '#FF9500';
+        ctx.beginPath();
+        ctx.moveTo(PLAYER_SIZE / 2 - 5, 0);
+        ctx.lineTo(PLAYER_SIZE / 2 + 12, 3);
+        ctx.lineTo(PLAYER_SIZE / 2 - 5, 8);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Wing
+        ctx.fillStyle = '#C0392B';
+        ctx.beginPath();
+        ctx.ellipse(-5, 5, 12, 8, -0.3, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
