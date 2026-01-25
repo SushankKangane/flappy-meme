@@ -789,10 +789,10 @@ function App() {
         )}
 
         {(gameState === 'ready' || gameState === 'playing' || gameState === 'gameover') && (
-          <div className="flex flex-col items-center">
-            <div className="mb-6 text-center">
-              <p className="score-display text-slate-800">{score}</p>
-              <p className="text-slate-600 font-bold">SCORE</p>
+          <div className={`flex flex-col items-center ${isMobile ? 'fixed inset-0 bg-yellow-50 z-40 pt-4' : ''}`}>
+            <div className={`${isMobile ? 'mb-2' : 'mb-6'} text-center`}>
+              <p className={`score-display text-slate-800 ${isMobile ? 'text-4xl' : ''}`}>{score}</p>
+              <p className={`text-slate-600 font-bold ${isMobile ? 'text-sm' : ''}`}>SCORE</p>
               {gameState === 'playing' && (
                 <p className="text-xs text-slate-500 mt-1">Speed: {currentSpeed.toFixed(1)}x</p>
               )}
@@ -800,15 +800,16 @@ function App() {
 
             <canvas
               ref={canvasRef}
-              width={800}
-              height={600}
+              width={canvasSize.width}
+              height={canvasSize.height}
               onClick={jump}
-              className="game-canvas bg-sky-300 max-w-full cursor-pointer"
+              className="game-canvas bg-sky-300 cursor-pointer rounded-2xl shadow-lg"
+              style={{ maxWidth: '100%', touchAction: 'none' }}
               data-testid="game-canvas"
             />
 
-            <p className="mt-4 text-slate-600 text-center">
-              {gameState === 'ready' ? 'Click canvas or press SPACE to start!' : 'Click canvas or press SPACE to jump'}
+            <p className={`${isMobile ? 'mt-2 text-sm' : 'mt-4'} text-slate-600 text-center`}>
+              {gameState === 'ready' ? 'Tap to start!' : 'Tap to jump'}
             </p>
 
             {gameState === 'gameover' && (
