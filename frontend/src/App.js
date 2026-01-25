@@ -18,7 +18,7 @@ function App() {
   const [gameState, setGameState] = useState('setup'); // 'setup', 'ready', 'playing', 'gameover'
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
-  const [playerImage, setPlayerImage] = useState('https://images.unsplash.com/photo-1739582814657-10931286d7a5?crop=entropy&cs=srgb&fm=jpg&q=85&w=200');
+  const [playerImage, setPlayerImage] = useState(null); // No default - shows stylish bird
   const [obstacleImage, setObstacleImage] = useState('https://images.unsplash.com/photo-1662374162155-2552f45b9f37?crop=entropy&cs=srgb&fm=jpg&q=85&w=200');
   const [hitSound, setHitSound] = useState(null);
   const [showResults, setShowResults] = useState(false);
