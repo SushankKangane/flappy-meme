@@ -651,17 +651,25 @@ function App() {
     <div className="min-h-screen bg-yellow-50">
       <Toaster position="top-center" richColors />
       
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <h1 className="game-title text-center text-5xl md:text-7xl text-slate-800 mb-2 tracking-wide">
-          🎮 FLAPPY MEME
-        </h1>
-        <p className="text-center text-slate-600 mb-8 text-lg">
-          Customize. Play. Go Viral! 🚀
-        </p>
+      <div className={`container mx-auto px-4 ${isMobile && gameState !== 'setup' ? 'py-2' : 'py-8'} max-w-6xl`}>
+        {/* Hide title on mobile when playing */}
+        {!(isMobile && (gameState === 'ready' || gameState === 'playing')) && (
+          <>
+            <h1 className={`game-title text-center text-slate-800 mb-2 tracking-wide ${isMobile ? 'text-3xl' : 'text-5xl md:text-7xl'}`}>
+              🎮 FLAPPY MEME
+            </h1>
+            <p className={`text-center text-slate-600 mb-8 ${isMobile ? 'text-sm mb-4' : 'text-lg'}`}>
+              Customize. Play. Go Viral! 🚀
+            </p>
+          </>
+        )}
 
-        <div className="mb-6 w-full h-[90px] bg-slate-200 flex items-center justify-center border-2 border-dashed border-slate-400 rounded-xl">
-          <span className="text-slate-500 font-bold">📢 Ad Space - Google AdSense Placeholder</span>
-        </div>
+        {/* Hide ad on mobile when playing */}
+        {!(isMobile && gameState !== 'setup') && (
+          <div className="mb-6 w-full h-[90px] bg-slate-200 flex items-center justify-center border-2 border-dashed border-slate-400 rounded-xl">
+            <span className="text-slate-500 font-bold text-sm md:text-base">📢 Ad Space - Google AdSense Placeholder</span>
+          </div>
+        )}
 
         {gameState === 'setup' && (
           <div className="grid md:grid-cols-2 gap-8 mb-8">
