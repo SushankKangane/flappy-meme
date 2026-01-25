@@ -23,6 +23,8 @@ function App() {
   const [hitSound, setHitSound] = useState(null);
   const [showResults, setShowResults] = useState(false);
   const [currentSpeed, setCurrentSpeed] = useState(INITIAL_PIPE_SPEED);
+  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
+  const [isMobile, setIsMobile] = useState(false);
 
   const canvasRef = useRef(null);
   const gameLoopRef = useRef(null);
@@ -37,6 +39,28 @@ function App() {
   const pipeSpeedRef = useRef(INITIAL_PIPE_SPEED);
   const gameStartTimeRef = useRef(null);
   const speedIntervalRef = useRef(null);
+
+  // Responsive canvas sizing
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      
+      if (mobile) {
+        // Portrait mode for mobile - fill most of screen
+        const width = Math.min(window.innerWidth - 32, 400);
+        const height = Math.min(window.innerHeight - 200, 600);
+        setCanvasSize({ width, height });
+      } else {
+        // Desktop - standard size
+        setCanvasSize({ width: 800, height: 600 });
+      }
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
 
   useEffect(() => {
     return () => {
