@@ -169,6 +169,19 @@ function App() {
     }, SPEED_INCREASE_INTERVAL);
   };
 
+  const endGame = useCallback(() => {
+    playHitSound();
+    if (speedIntervalRef.current) {
+      clearInterval(speedIntervalRef.current);
+      speedIntervalRef.current = null;
+    }
+    setGameState('gameover');
+    setShowResults(true);
+    if (scoreRef.current > highScore) {
+      setHighScore(scoreRef.current);
+    }
+  }, [highScore, playHitSound]);
+
   const jump = useCallback(() => {
     if (gameState === 'ready') {
       beginPlaying();
