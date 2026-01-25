@@ -183,11 +183,10 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Start game on click instead of auto-start"
-    - "Speed increases every 10 seconds"
+    - "Frontend features require manual UI testing"
   stuck_tasks: []
-  test_all: true
-  test_priority: "high_first"
+  test_all: false
+  test_priority: "backend_complete"
 
 agent_communication:
   - agent: "main"
