@@ -648,11 +648,14 @@ function App() {
           </div>
         )}
 
-        {(gameState === 'playing' || gameState === 'gameover') && (
+        {(gameState === 'ready' || gameState === 'playing' || gameState === 'gameover') && (
           <div className="flex flex-col items-center">
             <div className="mb-6 text-center">
               <p className="score-display text-slate-800">{score}</p>
               <p className="text-slate-600 font-bold">SCORE</p>
+              {gameState === 'playing' && (
+                <p className="text-xs text-slate-500 mt-1">Speed: {currentSpeed.toFixed(1)}x</p>
+              )}
             </div>
 
             <canvas
@@ -660,12 +663,12 @@ function App() {
               width={800}
               height={600}
               onClick={jump}
-              className="game-canvas bg-sky-300 max-w-full"
+              className="game-canvas bg-sky-300 max-w-full cursor-pointer"
               data-testid="game-canvas"
             />
 
             <p className="mt-4 text-slate-600 text-center">
-              Click canvas or press SPACE to jump
+              {gameState === 'ready' ? 'Click canvas or press SPACE to start!' : 'Click canvas or press SPACE to jump'}
             </p>
 
             {gameState === 'gameover' && (
