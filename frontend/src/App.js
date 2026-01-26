@@ -481,7 +481,9 @@ function App() {
         ctx.fill();
       }
 
-      playerRef.current.velocity += GRAVITY;
+      // Softer gravity on mobile for smoother control
+      const gravity = isMobile ? 0.4 : GRAVITY;
+      playerRef.current.velocity += gravity;
       playerRef.current.y += playerRef.current.velocity;
 
       if (playerRef.current.y + playerSize > height - groundHeight || playerRef.current.y < 0) {
