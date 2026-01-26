@@ -641,16 +641,20 @@ function App() {
 
   const shareScore = () => {
     const text = `I scored ${score} points in this viral Flappy game! Can you beat me? 🎮`;
+
     if (navigator.share) {
       navigator.share({
         title: 'My Game Score',
         text: text,
+        url: 'https://flappymeme.online'
       }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(text);
+      const fullText = `${text} https://flappymeme.online`;
+      navigator.clipboard.writeText(fullText);
       toast.success('Score copied to clipboard!');
     }
   };
+
 
   return (
     <div className="min-h-screen bg-yellow-50">
