@@ -23,6 +23,8 @@ function App() {
   const [hitSound, setHitSound] = useState(null);
   const [showResults, setShowResults] = useState(false);
   const [currentSpeed, setCurrentSpeed] = useState(INITIAL_PIPE_SPEED);
+  const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
+  const [isMobile, setIsMobile] = useState(false);
 
   const canvasRef = useRef(null);
   const gameLoopRef = useRef(null);
@@ -37,6 +39,28 @@ function App() {
   const pipeSpeedRef = useRef(INITIAL_PIPE_SPEED);
   const gameStartTimeRef = useRef(null);
   const speedIntervalRef = useRef(null);
+
+  // Responsive canvas sizing
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      
+      if (mobile) {
+        // Portrait mode for mobile - fill most of screen
+        const width = Math.min(window.innerWidth - 32, 400);
+        const height = Math.min(window.innerHeight - 200, 600);
+        setCanvasSize({ width, height });
+      } else {
+        // Desktop - standard size
+        setCanvasSize({ width: 800, height: 600 });
+      }
+    };
+
+    updateCanvasSize();
+    window.addEventListener('resize', updateCanvasSize);
+    return () => window.removeEventListener('resize', updateCanvasSize);
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -134,18 +158,20 @@ function App() {
   }, [hitSound]);
 
   const initGame = () => {
-    playerRef.current = { y: 250, velocity: 0 };
+    // Center player based on canvas height
+    playerRef.current = { y: canvasSize.height / 2 - PLAYER_SIZE, velocity: 0 };
     pipesRef.current = [];
     scoreRef.current = 0;
     pipeSpeedRef.current = INITIAL_PIPE_SPEED;
     setScore(0);
     setCurrentSpeed(INITIAL_PIPE_SPEED);
     
+    // Spread clouds across canvas width
     cloudsRef.current = [
-      { x: 100, y: 80, size: 60, speed: 0.5 },
-      { x: 300, y: 150, size: 80, speed: 0.3 },
-      { x: 500, y: 100, size: 70, speed: 0.4 },
-      { x: 700, y: 180, size: 90, speed: 0.35 }
+      { x: canvasSize.width * 0.1, y: 80, size: 60, speed: 0.5 },
+      { x: canvasSize.width * 0.4, y: 150, size: 80, speed: 0.3 },
+      { x: canvasSize.width * 0.6, y: 100, size: 70, speed: 0.4 },
+      { x: canvasSize.width * 0.9, y: 180, size: 90, speed: 0.35 }
     ];
   };
 
@@ -155,8 +181,13 @@ function App() {
     setShowResults(false);
   };
 
-  const beginPlaying = () => {
-    pipesRef.current = [{ x: 600, topHeight: Math.random() * 200 + 100 }];
+  const beginPlaying = useCallback(() => {
+    // First pipe starts from right edge
+    const groundHeight = isMobile ? 60 : 100;
+    pipesRef.current = [{ 
+      x: canvasSize.width, 
+      topHeight: Math.random() * (canvasSize.height - PIPE_GAP - groundHeight - 100) + 60 
+    }];
     gameStartTimeRef.current = Date.now();
     setGameState('playing');
     
@@ -167,7 +198,7 @@ function App() {
         setCurrentSpeed(pipeSpeedRef.current);
       }
     }, SPEED_INCREASE_INTERVAL);
-  };
+  }, [isMobile, canvasSize]);
 
   const endGame = useCallback(() => {
     playHitSound();
@@ -189,7 +220,7 @@ function App() {
     } else if (gameState === 'playing') {
       playerRef.current.velocity = JUMP_STRENGTH;
     }
-  }, [gameState]);
+  }, [gameState, beginPlaying]);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
@@ -225,6 +256,8 @@ function App() {
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
+    const groundHeight = isMobile ? 60 : 100;
+    const playerSize = isMobile ? 40 : PLAYER_SIZE;
 
     const drawReadyScreen = () => {
       // Draw background
@@ -248,101 +281,101 @@ function App() {
 
       // Draw ground
       ctx.fillStyle = '#90EE90';
-      ctx.fillRect(0, height - 100, width, 100);
+      ctx.fillRect(0, height - groundHeight, width, groundHeight);
       
       for (let i = 0; i < width; i += 30) {
         ctx.fillStyle = '#228B22';
         ctx.beginPath();
-        ctx.arc(i, height - 100, 15, 0, Math.PI * 2);
+        ctx.arc(i, height - groundHeight, 15, 0, Math.PI * 2);
         ctx.fill();
       }
 
       // Draw player stationary
       ctx.save();
-      ctx.translate(width / 4 + PLAYER_SIZE / 2, playerRef.current.y + PLAYER_SIZE / 2);
+      ctx.translate(width / 4 + playerSize / 2, playerRef.current.y + playerSize / 2);
       if (playerImgRef.current) {
         ctx.beginPath();
-        ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.arc(0, 0, playerSize / 2, 0, Math.PI * 2);
         ctx.clip();
         ctx.drawImage(
           playerImgRef.current,
-          -PLAYER_SIZE / 2,
-          -PLAYER_SIZE / 2,
-          PLAYER_SIZE,
-          PLAYER_SIZE
+          -playerSize / 2,
+          -playerSize / 2,
+          playerSize,
+          playerSize
         );
       } else {
         // Stylish gradient bird with glow effect
-        const birdGradient = ctx.createRadialGradient(0, 0, 5, 0, 0, PLAYER_SIZE / 2);
-        birdGradient.addColorStop(0, '#FFD700'); // Gold center
-        birdGradient.addColorStop(0.5, '#FF6B6B'); // Coral
-        birdGradient.addColorStop(1, '#EE5A24'); // Orange-red edge
+        const birdGradient = ctx.createRadialGradient(0, 0, 5, 0, 0, playerSize / 2);
+        birdGradient.addColorStop(0, '#FFD700');
+        birdGradient.addColorStop(0.5, '#FF6B6B');
+        birdGradient.addColorStop(1, '#EE5A24');
         
-        // Outer glow
         ctx.shadowColor = '#FF6B6B';
         ctx.shadowBlur = 15;
         
-        // Main bird body
         ctx.fillStyle = birdGradient;
         ctx.beginPath();
-        ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.arc(0, 0, playerSize / 2, 0, Math.PI * 2);
         ctx.fill();
         
-        // Reset shadow for details
         ctx.shadowBlur = 0;
         
-        // Eye white
+        // Scale features for bird size
+        const scale = playerSize / PLAYER_SIZE;
+        
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
-        ctx.ellipse(8, -5, 10, 12, 0, 0, Math.PI * 2);
+        ctx.ellipse(8 * scale, -5 * scale, 10 * scale, 12 * scale, 0, 0, Math.PI * 2);
         ctx.fill();
         
-        // Eye pupil
         ctx.fillStyle = '#1a1a2e';
         ctx.beginPath();
-        ctx.arc(10, -5, 5, 0, Math.PI * 2);
+        ctx.arc(10 * scale, -5 * scale, 5 * scale, 0, Math.PI * 2);
         ctx.fill();
         
-        // Eye shine
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
-        ctx.arc(12, -7, 2, 0, Math.PI * 2);
+        ctx.arc(12 * scale, -7 * scale, 2 * scale, 0, Math.PI * 2);
         ctx.fill();
         
-        // Beak
         ctx.fillStyle = '#FF9500';
         ctx.beginPath();
-        ctx.moveTo(PLAYER_SIZE / 2 - 5, 0);
-        ctx.lineTo(PLAYER_SIZE / 2 + 12, 3);
-        ctx.lineTo(PLAYER_SIZE / 2 - 5, 8);
+        ctx.moveTo(playerSize / 2 - 5 * scale, 0);
+        ctx.lineTo(playerSize / 2 + 12 * scale, 3 * scale);
+        ctx.lineTo(playerSize / 2 - 5 * scale, 8 * scale);
         ctx.closePath();
         ctx.fill();
         
-        // Wing
         ctx.fillStyle = '#C0392B';
         ctx.beginPath();
-        ctx.ellipse(-5, 5, 12, 8, -0.3, 0, Math.PI * 2);
+        ctx.ellipse(-5 * scale, 5 * scale, 12 * scale, 8 * scale, -0.3, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
 
-      // Draw "Click to Start" message
+      // Draw "Click to Start" message - responsive size
+      const boxWidth = isMobile ? 200 : 300;
+      const boxHeight = isMobile ? 70 : 100;
+      const fontSize = isMobile ? 20 : 28;
+      const subFontSize = isMobile ? 12 : 16;
+      
       ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-      ctx.fillRect(width / 2 - 150, height / 2 - 50, 300, 100);
+      ctx.fillRect(width / 2 - boxWidth / 2, height / 2 - boxHeight / 2, boxWidth, boxHeight);
       ctx.strokeStyle = '#fff';
       ctx.lineWidth = 3;
-      ctx.strokeRect(width / 2 - 150, height / 2 - 50, 300, 100);
+      ctx.strokeRect(width / 2 - boxWidth / 2, height / 2 - boxHeight / 2, boxWidth, boxHeight);
       
       ctx.fillStyle = '#fff';
-      ctx.font = 'bold 28px Arial';
+      ctx.font = `bold ${fontSize}px Arial`;
       ctx.textAlign = 'center';
       ctx.fillText('🎮 TAP TO START', width / 2, height / 2);
-      ctx.font = '16px Arial';
-      ctx.fillText('Press SPACE or Click', width / 2, height / 2 + 30);
+      ctx.font = `${subFontSize}px Arial`;
+      ctx.fillText('Press SPACE or Click', width / 2, height / 2 + (isMobile ? 20 : 30));
     };
 
     drawReadyScreen();
-  }, [gameState]);
+  }, [gameState, isMobile, canvasSize]);
 
   useEffect(() => {
     if (gameState !== 'playing') return;
@@ -353,6 +386,13 @@ function App() {
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
+    
+    // Responsive sizing
+    const groundHeight = isMobile ? 60 : 100;
+    const playerSize = isMobile ? 40 : PLAYER_SIZE;
+    const pipeWidth = isMobile ? 60 : PIPE_WIDTH;
+    const pipeGap = isMobile ? 180 : PIPE_GAP;
+    const pipeSpacing = isMobile ? 200 : 300;
 
     const drawCloud = (x, y, size) => {
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
@@ -365,20 +405,20 @@ function App() {
     };
 
     const drawPipe = (x, y, pipeHeight, isTop) => {
-      const gradient = ctx.createLinearGradient(x, 0, x + PIPE_WIDTH, 0);
+      const gradient = ctx.createLinearGradient(x, 0, x + pipeWidth, 0);
       gradient.addColorStop(0, '#22c55e');
       gradient.addColorStop(0.5, '#16a34a');
       gradient.addColorStop(1, '#15803d');
       
       ctx.fillStyle = gradient;
-      ctx.fillRect(x, y, PIPE_WIDTH, pipeHeight);
+      ctx.fillRect(x, y, pipeWidth, pipeHeight);
       
       ctx.strokeStyle = '#14532d';
       ctx.lineWidth = 2;
-      ctx.strokeRect(x, y, PIPE_WIDTH, pipeHeight);
+      ctx.strokeRect(x, y, pipeWidth, pipeHeight);
       
-      const capHeight = 30;
-      const capWidth = PIPE_WIDTH + 10;
+      const capHeight = isMobile ? 20 : 30;
+      const capWidth = pipeWidth + 10;
       const capX = x - 5;
       
       if (isTop) {
@@ -429,19 +469,19 @@ function App() {
       });
 
       ctx.fillStyle = '#90EE90';
-      ctx.fillRect(0, height - 100, width, 100);
+      ctx.fillRect(0, height - groundHeight, width, groundHeight);
       
       for (let i = 0; i < width; i += 30) {
         ctx.fillStyle = '#228B22';
         ctx.beginPath();
-        ctx.arc(i, height - 100, 15, 0, Math.PI * 2);
+        ctx.arc(i, height - groundHeight, 15, 0, Math.PI * 2);
         ctx.fill();
       }
 
       playerRef.current.velocity += GRAVITY;
       playerRef.current.y += playerRef.current.velocity;
 
-      if (playerRef.current.y + PLAYER_SIZE > height - 100 || playerRef.current.y < 0) {
+      if (playerRef.current.y + playerSize > height - groundHeight || playerRef.current.y < 0) {
         endGame();
         return;
       }
@@ -450,31 +490,31 @@ function App() {
         pipe.x -= pipeSpeedRef.current;
       });
 
-      if (pipesRef.current.length === 0 || pipesRef.current[pipesRef.current.length - 1].x < width - 300) {
-        // More varied pipe heights - gaps can appear from top to bottom area
-        const minTopHeight = 60; // Minimum top pipe height
-        const maxTopHeight = height - PIPE_GAP - 160; // Leave room for bottom pipe and ground
+      if (pipesRef.current.length === 0 || pipesRef.current[pipesRef.current.length - 1].x < width - pipeSpacing) {
+        // More varied pipe heights
+        const minTopHeight = 50;
+        const maxTopHeight = height - pipeGap - groundHeight - 50;
         pipesRef.current.push({
           x: width,
           topHeight: Math.random() * (maxTopHeight - minTopHeight) + minTopHeight
         });
       }
 
-      pipesRef.current = pipesRef.current.filter(pipe => pipe.x > -PIPE_WIDTH);
+      pipesRef.current = pipesRef.current.filter(pipe => pipe.x > -pipeWidth);
 
       pipesRef.current.forEach(pipe => {
         drawPipe(pipe.x, 0, pipe.topHeight, true);
-        drawPipe(pipe.x, pipe.topHeight + PIPE_GAP, height - pipe.topHeight - PIPE_GAP - 100, false);
+        drawPipe(pipe.x, pipe.topHeight + pipeGap, height - pipe.topHeight - pipeGap - groundHeight, false);
 
         if (obstacleImgRef.current) {
-          const imgSize = 60;
+          const imgSize = isMobile ? 40 : 60;
           ctx.save();
           ctx.beginPath();
-          ctx.arc(pipe.x + PIPE_WIDTH / 2, pipe.topHeight - 15, 35, 0, Math.PI * 2);
+          ctx.arc(pipe.x + pipeWidth / 2, pipe.topHeight - 15, imgSize / 2, 0, Math.PI * 2);
           ctx.clip();
           ctx.drawImage(
             obstacleImgRef.current,
-            pipe.x + PIPE_WIDTH / 2 - imgSize / 2,
+            pipe.x + pipeWidth / 2 - imgSize / 2,
             pipe.topHeight - 15 - imgSize / 2,
             imgSize,
             imgSize
@@ -483,12 +523,12 @@ function App() {
 
           ctx.save();
           ctx.beginPath();
-          ctx.arc(pipe.x + PIPE_WIDTH / 2, pipe.topHeight + PIPE_GAP + 15, 35, 0, Math.PI * 2);
+          ctx.arc(pipe.x + pipeWidth / 2, pipe.topHeight + pipeGap + 15, imgSize / 2, 0, Math.PI * 2);
           ctx.clip();
           ctx.drawImage(
             obstacleImgRef.current,
-            pipe.x + PIPE_WIDTH / 2 - imgSize / 2,
-            pipe.topHeight + PIPE_GAP + 15 - imgSize / 2,
+            pipe.x + pipeWidth / 2 - imgSize / 2,
+            pipe.topHeight + pipeGap + 15 - imgSize / 2,
             imgSize,
             imgSize
           );
@@ -496,92 +536,88 @@ function App() {
         }
 
         const playerLeft = width / 4;
-        const playerRight = playerLeft + PLAYER_SIZE;
+        const playerRight = playerLeft + playerSize;
         const playerTop = playerRef.current.y;
-        const playerBottom = playerTop + PLAYER_SIZE;
+        const playerBottom = playerTop + playerSize;
 
         const pipeLeft = pipe.x;
-        const pipeRight = pipe.x + PIPE_WIDTH;
+        const pipeRight = pipe.x + pipeWidth;
 
         if (playerRight > pipeLeft && playerLeft < pipeRight) {
-          if (playerTop < pipe.topHeight || playerBottom > pipe.topHeight + PIPE_GAP) {
+          if (playerTop < pipe.topHeight || playerBottom > pipe.topHeight + pipeGap) {
             endGame();
             return;
           }
         }
 
-        if (pipe.x + PIPE_WIDTH < width / 4 && !pipe.scored) {
+        if (pipe.x + pipeWidth < width / 4 && !pipe.scored) {
           pipe.scored = true;
           scoreRef.current += 1;
           setScore(scoreRef.current);
         }
       });
 
+      // Draw player
       ctx.save();
-      ctx.translate(width / 4 + PLAYER_SIZE / 2, playerRef.current.y + PLAYER_SIZE / 2);
+      ctx.translate(width / 4 + playerSize / 2, playerRef.current.y + playerSize / 2);
       ctx.rotate(Math.min(playerRef.current.velocity * 0.05, 1.5));
       if (playerImgRef.current) {
         ctx.beginPath();
-        ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.arc(0, 0, playerSize / 2, 0, Math.PI * 2);
         ctx.clip();
         ctx.drawImage(
           playerImgRef.current,
-          -PLAYER_SIZE / 2,
-          -PLAYER_SIZE / 2,
-          PLAYER_SIZE,
-          PLAYER_SIZE
+          -playerSize / 2,
+          -playerSize / 2,
+          playerSize,
+          playerSize
         );
       } else {
-        // Stylish gradient bird with glow effect
-        const birdGradient = ctx.createRadialGradient(0, 0, 5, 0, 0, PLAYER_SIZE / 2);
-        birdGradient.addColorStop(0, '#FFD700'); // Gold center
-        birdGradient.addColorStop(0.5, '#FF6B6B'); // Coral
-        birdGradient.addColorStop(1, '#EE5A24'); // Orange-red edge
+        // Stylish gradient bird
+        const birdGradient = ctx.createRadialGradient(0, 0, 5, 0, 0, playerSize / 2);
+        birdGradient.addColorStop(0, '#FFD700');
+        birdGradient.addColorStop(0.5, '#FF6B6B');
+        birdGradient.addColorStop(1, '#EE5A24');
         
-        // Outer glow
         ctx.shadowColor = '#FF6B6B';
         ctx.shadowBlur = 15;
         
-        // Main bird body
         ctx.fillStyle = birdGradient;
         ctx.beginPath();
-        ctx.arc(0, 0, PLAYER_SIZE / 2, 0, Math.PI * 2);
+        ctx.arc(0, 0, playerSize / 2, 0, Math.PI * 2);
         ctx.fill();
         
-        // Reset shadow for details
         ctx.shadowBlur = 0;
         
-        // Eye white
+        // Scale features
+        const scale = playerSize / PLAYER_SIZE;
+        
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
-        ctx.ellipse(8, -5, 10, 12, 0, 0, Math.PI * 2);
+        ctx.ellipse(8 * scale, -5 * scale, 10 * scale, 12 * scale, 0, 0, Math.PI * 2);
         ctx.fill();
         
-        // Eye pupil
         ctx.fillStyle = '#1a1a2e';
         ctx.beginPath();
-        ctx.arc(10, -5, 5, 0, Math.PI * 2);
+        ctx.arc(10 * scale, -5 * scale, 5 * scale, 0, Math.PI * 2);
         ctx.fill();
         
-        // Eye shine
         ctx.fillStyle = '#FFFFFF';
         ctx.beginPath();
-        ctx.arc(12, -7, 2, 0, Math.PI * 2);
+        ctx.arc(12 * scale, -7 * scale, 2 * scale, 0, Math.PI * 2);
         ctx.fill();
         
-        // Beak
         ctx.fillStyle = '#FF9500';
         ctx.beginPath();
-        ctx.moveTo(PLAYER_SIZE / 2 - 5, 0);
-        ctx.lineTo(PLAYER_SIZE / 2 + 12, 3);
-        ctx.lineTo(PLAYER_SIZE / 2 - 5, 8);
+        ctx.moveTo(playerSize / 2 - 5 * scale, 0);
+        ctx.lineTo(playerSize / 2 + 12 * scale, 3 * scale);
+        ctx.lineTo(playerSize / 2 - 5 * scale, 8 * scale);
         ctx.closePath();
         ctx.fill();
         
-        // Wing
         ctx.fillStyle = '#C0392B';
         ctx.beginPath();
-        ctx.ellipse(-5, 5, 12, 8, -0.3, 0, Math.PI * 2);
+        ctx.ellipse(-5 * scale, 5 * scale, 12 * scale, 8 * scale, -0.3, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
@@ -596,7 +632,7 @@ function App() {
         cancelAnimationFrame(gameLoopRef.current);
       }
     };
-  }, [gameState, endGame]);
+  }, [gameState, endGame, isMobile]);
 
   const shareScore = () => {
     const text = `I scored ${score} points in this viral Flappy game! Can you beat me? 🎮`;
@@ -615,17 +651,25 @@ function App() {
     <div className="min-h-screen bg-yellow-50">
       <Toaster position="top-center" richColors />
       
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <h1 className="game-title text-center text-5xl md:text-7xl text-slate-800 mb-2 tracking-wide">
-          🎮 FLAPPY MEME
-        </h1>
-        <p className="text-center text-slate-600 mb-8 text-lg">
-          Customize. Play. Go Viral! 🚀
-        </p>
+      <div className={`container mx-auto px-4 ${isMobile && gameState !== 'setup' ? 'py-2' : 'py-8'} max-w-6xl`}>
+        {/* Hide title on mobile when playing */}
+        {!(isMobile && (gameState === 'ready' || gameState === 'playing')) && (
+          <>
+            <h1 className={`game-title text-center text-slate-800 mb-2 tracking-wide ${isMobile ? 'text-3xl' : 'text-5xl md:text-7xl'}`}>
+              🎮 FLAPPY MEME
+            </h1>
+            <p className={`text-center text-slate-600 mb-8 ${isMobile ? 'text-sm mb-4' : 'text-lg'}`}>
+              Customize. Play. Go Viral! 🚀
+            </p>
+          </>
+        )}
 
-        <div className="mb-6 w-full h-[90px] bg-slate-200 flex items-center justify-center border-2 border-dashed border-slate-400 rounded-xl">
-          <span className="text-slate-500 font-bold">📢 Ad Space - Google AdSense Placeholder</span>
-        </div>
+        {/* Hide ad on mobile when playing */}
+        {!(isMobile && gameState !== 'setup') && (
+          <div className="mb-6 w-full h-[90px] bg-slate-200 flex items-center justify-center border-2 border-dashed border-slate-400 rounded-xl">
+            <span className="text-slate-500 font-bold text-sm md:text-base">📢 Ad Space - Google AdSense Placeholder</span>
+          </div>
+        )}
 
         {gameState === 'setup' && (
           <div className="grid md:grid-cols-2 gap-8 mb-8">
@@ -753,10 +797,10 @@ function App() {
         )}
 
         {(gameState === 'ready' || gameState === 'playing' || gameState === 'gameover') && (
-          <div className="flex flex-col items-center">
-            <div className="mb-6 text-center">
-              <p className="score-display text-slate-800">{score}</p>
-              <p className="text-slate-600 font-bold">SCORE</p>
+          <div className={`flex flex-col items-center ${isMobile ? 'fixed inset-0 bg-yellow-50 z-40 pt-4' : ''}`}>
+            <div className={`${isMobile ? 'mb-2' : 'mb-6'} text-center`}>
+              <p className={`score-display text-slate-800 ${isMobile ? 'text-4xl' : ''}`}>{score}</p>
+              <p className={`text-slate-600 font-bold ${isMobile ? 'text-sm' : ''}`}>SCORE</p>
               {gameState === 'playing' && (
                 <p className="text-xs text-slate-500 mt-1">Speed: {currentSpeed.toFixed(1)}x</p>
               )}
@@ -764,15 +808,16 @@ function App() {
 
             <canvas
               ref={canvasRef}
-              width={800}
-              height={600}
+              width={canvasSize.width}
+              height={canvasSize.height}
               onClick={jump}
-              className="game-canvas bg-sky-300 max-w-full cursor-pointer"
+              className="game-canvas bg-sky-300 cursor-pointer rounded-2xl shadow-lg"
+              style={{ maxWidth: '100%', touchAction: 'none' }}
               data-testid="game-canvas"
             />
 
-            <p className="mt-4 text-slate-600 text-center">
-              {gameState === 'ready' ? 'Click canvas or press SPACE to start!' : 'Click canvas or press SPACE to jump'}
+            <p className={`${isMobile ? 'mt-2 text-sm' : 'mt-4'} text-slate-600 text-center`}>
+              {gameState === 'ready' ? 'Tap to start!' : 'Tap to jump'}
             </p>
 
             {gameState === 'gameover' && (
