@@ -214,13 +214,16 @@ function App() {
   }, [highScore, playHitSound]);
 
   const jump = useCallback(() => {
+    // Softer jump on mobile for better control
+    const jumpStrength = isMobile ? -7 : JUMP_STRENGTH;
+    
     if (gameState === 'ready') {
       beginPlaying();
-      playerRef.current.velocity = JUMP_STRENGTH;
+      playerRef.current.velocity = jumpStrength;
     } else if (gameState === 'playing') {
-      playerRef.current.velocity = JUMP_STRENGTH;
+      playerRef.current.velocity = jumpStrength;
     }
-  }, [gameState, beginPlaying]);
+  }, [gameState, beginPlaying, isMobile]);
 
   useEffect(() => {
     const handleKeyPress = (e) => {
