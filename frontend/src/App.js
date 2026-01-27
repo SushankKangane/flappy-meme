@@ -3,7 +3,7 @@ import "./App.css";
 import { Upload, Play, RotateCcw, Share2, Volume2 } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 
-const GRAVITY = 0.5;
+const GRAVITY = 0.3;
 const JUMP_STRENGTH = -10;
 const PIPE_WIDTH = 80;
 const PIPE_GAP = 230; // Increased gap for better playability
