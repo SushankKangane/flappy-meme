@@ -243,7 +243,6 @@ function App() {
     };
 
     window.addEventListener('keydown', handleKeyPress);
-    window.addEventListener('touchstart', handleTouchStart);
 
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
@@ -830,6 +829,10 @@ function App() {
               width={canvasSize.width}
               height={canvasSize.height}
               onClick={jump}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                jump();
+              }}
               className="game-canvas bg-sky-300 cursor-pointer rounded-2xl shadow-lg"
               style={{ maxWidth: '100%', touchAction: 'none' }}
               data-testid="game-canvas"
