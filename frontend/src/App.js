@@ -690,9 +690,9 @@ function App() {
                   <label className="block text-lg font-bold mb-3 text-slate-700">Player Image</label>
                   <div className="flex items-center gap-4">
                     {playerImage ? (
-                      <img 
-                        src={playerImage} 
-                        alt="Player" 
+                      <img
+                        src={playerImage}
+                        alt="Player"
                         className="w-20 h-20 rounded-full border-4 border-rose-500 object-cover"
                       />
                     ) : (
@@ -703,7 +703,7 @@ function App() {
                     )}
                     <label className="upload-button bg-rose-500 text-white px-6 py-3 rounded-full flex items-center gap-2">
                       <Upload size={20} />
-                      {playerImage ? 'Change' : 'Upload Custom'}
+                      {playerImage ? 'Change' : 'Upload'}
                       <input
                         type="file"
                         accept="image/*"
@@ -718,9 +718,9 @@ function App() {
                 <div>
                   <label className="block text-lg font-bold mb-3 text-slate-700">Obstacle Image</label>
                   <div className="flex items-center gap-4">
-                    <img 
-                      src={obstacleImage} 
-                      alt="Obstacle" 
+                    <img
+                      src={obstacleImage}
+                      alt="Obstacle"
                       className="w-20 h-20 rounded-full border-4 border-lime-500 object-cover"
                     />
                     <label className="upload-button bg-lime-500 text-white px-6 py-3 rounded-full flex items-center gap-2">
