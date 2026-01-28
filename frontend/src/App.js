@@ -26,7 +26,7 @@ function App() {
   const [currentSpeed, setCurrentSpeed] = useState(3);
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
   const [isMobile, setIsMobile] = useState(false);
-
+  const lastFrameTimeRef = useRef(null);
   const canvasRef = useRef(null);
   const gameLoopRef = useRef(null);
   const playerRef = useRef({ y: 250, velocity: 0 });
@@ -40,6 +40,8 @@ function App() {
   const pipeSpeedRef = useRef(3);
   const gameStartTimeRef = useRef(null);
   const speedIntervalRef = useRef(null);
+  const refreshRateRef = useRef(60);
+
 
   // Responsive canvas sizing
   useEffect(() => {
@@ -185,6 +187,7 @@ function App() {
 
   const beginPlaying = useCallback(() => {
     // First pipe starts from right edge
+
     const groundHeight = isMobile ? 60 : 100;
     pipesRef.current = [{ 
       x: canvasSize.width, 
@@ -217,9 +220,15 @@ function App() {
 
   const jump = useCallback(() => {
     // Softer jump on mobile for better control
-    const jumpStrength = isMobile ? -6 : JUMP_STRENGTH;
-    
+    const rr = refreshRateRef.current;
+    const scale = 60 / rr;
+    let jumpStrength = isMobile? -6 : JUMP_STRENGTH;
+    jumpStrength = jumpStrength * scale
+
+
+
     if (gameState === 'ready') {
+      jumpStrength *= 1.3; // increase by 30%
       beginPlaying();
       playerRef.current.velocity = jumpStrength;
     } else if (gameState === 'playing') {
@@ -373,7 +382,7 @@ function App() {
       ctx.fillStyle = '#fff';
       ctx.font = `bold ${fontSize}px Arial`;
       ctx.textAlign = 'center';
-      ctx.fillText('🎮 TAP TO START', width / 2, height / 2);
+      ctx.fillText('🎮 TAP TO START local', width / 2, height / 2);
       ctx.font = `${subFontSize}px Arial`;
       ctx.fillText('Press SPACE or Click', width / 2, height / 2 + (isMobile ? 20 : 30));
     };
@@ -517,10 +526,30 @@ function App() {
       ctx.stroke();
     };
 
+    let frameCount = 0;
+    let startTime = 0;
+
+    function detectRefreshRate(timestamp) {
+      if (!startTime) startTime = timestamp;
+      frameCount++;
+
+      if (timestamp - startTime >= 1000) {
+        refreshRateRef.current = frameCount;
+        console.log("Detected Refresh Rate:", refreshRateRef.current);
+        return;
+      }
+      requestAnimationFrame(detectRefreshRate);
+    }
+
+    requestAnimationFrame(detectRefreshRate);
 
 
 
-    const gameLoop = () => {
+    const gameLoop = (timestamp) => {
+
+      if (!lastFrameTimeRef.current) lastFrameTimeRef.current = timestamp;
+      const deltaTime = (timestamp - lastFrameTimeRef.current) /16.7; // normalize to ~60fps
+      lastFrameTimeRef.current = timestamp;
       const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
       bgGradient.addColorStop(0, '#87CEEB');
       bgGradient.addColorStop(0.7, '#B0E0E6');
@@ -529,7 +558,7 @@ function App() {
       ctx.fillRect(0, 0, width, height);
       
       cloudsRef.current.forEach(cloud => {
-        cloud.x -= cloud.speed;
+        cloud.x -= cloud.speed * deltaTime;
         if (cloud.x + cloud.size < 0) {
           cloud.x = width + cloud.size;
           cloud.y = Math.random() * (height * 0.4) + 50;
@@ -548,7 +577,16 @@ function App() {
       }
 
       // Softer gravity on mobile for smoother control
-      const gravity = isMobile ? 0.4 : GRAVITY;
+      const rr = refreshRateRef.current;
+      const scale = 60 / rr;
+      let gravity = isMobile
+          ? (rr <= 60 ? 0.4 : rr <= 90 ? 0.3 : 0.2)
+          : GRAVITY;
+
+      gravity  = gravity * scale;
+
+
+
       playerRef.current.velocity += gravity;
       playerRef.current.y += playerRef.current.velocity;
 
@@ -558,7 +596,7 @@ function App() {
       }
 
       pipesRef.current.forEach(pipe => {
-        pipe.x -= pipeSpeedRef.current;
+        pipe.x -= pipeSpeedRef.current * deltaTime;
       });
 
       if (pipesRef.current.length === 0 || pipesRef.current[pipesRef.current.length - 1].x < width - pipeSpacing) {
