@@ -181,7 +181,6 @@ function App() {
 
   const startGame = () => {
     initGame();
-    primeRAF();   // 🔥 warm up animation frame
     setGameState('ready'); // Set to ready state, waiting for first click
     setShowResults(false);
   };
