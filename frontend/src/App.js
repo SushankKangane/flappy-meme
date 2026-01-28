@@ -3,8 +3,8 @@ import "./App.css";
 import { Upload, Play, RotateCcw, Share2, Volume2 } from 'lucide-react';
 import { Toaster, toast } from 'sonner';
 
-const GRAVITY = 0.3;
-const JUMP_STRENGTH = -10;
+const GRAVITY = 0.7;
+const JUMP_STRENGTH = -11;
 const PIPE_WIDTH = 80;
 const PIPE_GAP = 230; // Increased gap for better playability
 const INITIAL_PIPE_SPEED = 3;
@@ -13,6 +13,7 @@ const SPEED_INCREASE_AMOUNT = 0.4;
 const MAX_PIPE_SPEED = 8;
 const PLAYER_SIZE = 50;
 const HIT_SOUND_DURATION = 3000;
+const getInitialSpeed = (mobile) => (mobile ? 3 : 5);
 
 function App() {
   const [gameState, setGameState] = useState('setup'); // 'setup', 'ready', 'playing', 'gameover'
@@ -22,7 +23,7 @@ function App() {
   const [obstacleImage, setObstacleImage] = useState('https://images.unsplash.com/photo-1662374162155-2552f45b9f37?crop=entropy&cs=srgb&fm=jpg&q=85&w=200');
   const [hitSound, setHitSound] = useState(null);
   const [showResults, setShowResults] = useState(false);
-  const [currentSpeed, setCurrentSpeed] = useState(INITIAL_PIPE_SPEED);
+  const [currentSpeed, setCurrentSpeed] = useState(3);
   const [canvasSize, setCanvasSize] = useState({ width: 800, height: 600 });
   const [isMobile, setIsMobile] = useState(false);
 
@@ -36,7 +37,7 @@ function App() {
   const cloudsRef = useRef([]);
   const audioRef = useRef(null);
   const audioTimeoutRef = useRef(null);
-  const pipeSpeedRef = useRef(INITIAL_PIPE_SPEED);
+  const pipeSpeedRef = useRef(3);
   const gameStartTimeRef = useRef(null);
   const speedIntervalRef = useRef(null);
 
@@ -162,9 +163,10 @@ function App() {
     playerRef.current = { y: canvasSize.height / 2 - PLAYER_SIZE, velocity: 0 };
     pipesRef.current = [];
     scoreRef.current = 0;
-    pipeSpeedRef.current = INITIAL_PIPE_SPEED;
+    const initialSpeed = getInitialSpeed(isMobile);
+    pipeSpeedRef.current = initialSpeed;
+    setCurrentSpeed(initialSpeed);
     setScore(0);
-    setCurrentSpeed(INITIAL_PIPE_SPEED);
     
     // Spread clouds across canvas width
     cloudsRef.current = [
@@ -739,9 +741,16 @@ function App() {
 
                 <div>
                   <label className="block text-lg font-bold mb-3 text-slate-700">Hit Sound</label>
+                  <div className="flex items-center gap-4">
+                        <div
+                            className="w-20 h-20 rounded-full border-4 border-purple-500 flex items-center justify-center cursor-pointer"
+                            style={{background: 'linear-gradient(135deg, #6366F1, #8B5CF6)'}}
+                        >
+                          <span className="text-3xl">🎵</span>
+                        </div>
                   <label className="upload-button bg-purple-500 text-white px-6 py-3 rounded-full flex items-center gap-2 w-fit">
                     <Volume2 size={20} />
-                    {hitSound ? 'Sound Uploaded ✓' : 'Upload Sound'}
+                    {hitSound ? 'Sound Uploaded ✓' : 'Upload'}
                     <input
                       type="file"
                       accept="audio/*"
@@ -750,6 +759,7 @@ function App() {
                       data-testid="sound-upload"
                     />
                   </label>
+                  </div>
                 </div>
               </div>
 
