@@ -13,7 +13,7 @@ const SPEED_INCREASE_AMOUNT = 0.4;
 const MAX_PIPE_SPEED = 8;
 const PLAYER_SIZE = 50;
 const HIT_SOUND_DURATION = 3000;
-const getInitialSpeed = (mobile) => (mobile ? 3 : 5);
+const getInitialSpeed = (mobile) => (mobile ? INITIAL_PIPE_SPEED : INITIAL_PIPE_SPEED + 1);
 
 function App() {
   const [gameState, setGameState] = useState('setup'); // 'setup', 'ready', 'playing', 'gameover'
@@ -217,7 +217,7 @@ function App() {
 
   const jump = useCallback(() => {
     // Softer jump on mobile for better control
-    const jumpStrength = isMobile ? -7 : JUMP_STRENGTH;
+    const jumpStrength = isMobile ? -6 : JUMP_STRENGTH;
     
     if (gameState === 'ready') {
       beginPlaying();
@@ -902,6 +902,20 @@ function App() {
           </div>
         )}
       </div>
+      {/* Footer - only show on setup page */}
+      {gameState === 'setup' && (
+          <footer className="py-6 text-center border-t border-slate-200 bg-yellow-50">
+            <p className="text-slate-500 text-sm">
+              Made with ❤️ for meme and game lovers
+            </p>
+            <a
+                href="mailto:flappymeme2@gmail.com"
+                className="text-slate-400 hover:text-rose-500 text-sm transition-colors"
+            >
+              📧 flappymeme2@gmail.com
+            </a>
+          </footer>
+      )}
     </div>
   );
 }
