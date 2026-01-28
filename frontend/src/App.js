@@ -181,13 +181,17 @@ function App() {
 
   const startGame = () => {
     initGame();
+    // RESET timing
+    lastFrameTimeRef.current = null;
+    refreshRateRef.current = 60;
     setGameState('ready'); // Set to ready state, waiting for first click
     setShowResults(false);
   };
 
   const beginPlaying = useCallback(() => {
     // First pipe starts from right edge
-
+    lastFrameTimeRef.current = null;   // VERY IMPORTANT
+    refreshRateRef.current = 60;
     const groundHeight = isMobile ? 60 : 100;
     pipesRef.current = [{ 
       x: canvasSize.width, 
