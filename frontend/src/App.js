@@ -246,7 +246,7 @@ function App() {
 
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
-      window.removeEventListener('touchstart', handleTouchStart);
+      //window.removeEventListener('touchstart', handleTouchStart);
     };
   }, [jump, gameState]);
 
