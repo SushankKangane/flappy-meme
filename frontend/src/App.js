@@ -455,6 +455,71 @@ function App() {
       }
     };
 
+    const drawRoundedPipe = (x, y, width, height, isTop) => {
+      const r = width / 2;
+
+      ctx.fillStyle = '#22c55e';
+      ctx.beginPath();
+
+      if (isTop) {
+        // TOP pipe → rounded at BOTTOM
+        ctx.moveTo(x, y);
+        ctx.lineTo(x + width, y);
+        ctx.lineTo(x + width, y + height - r);
+
+        ctx.quadraticCurveTo(
+            x + width,
+            y + height,
+            x + width - r,
+            y + height
+        );
+
+        ctx.lineTo(x + r, y + height);
+
+        ctx.quadraticCurveTo(
+            x,
+            y + height,
+            x,
+            y + height - r
+        );
+
+        ctx.lineTo(x, y);
+      } else {
+        // BOTTOM pipe → rounded at TOP
+        ctx.moveTo(x, y + r);
+
+        ctx.quadraticCurveTo(
+            x,
+            y,
+            x + r,
+            y
+        );
+
+        ctx.lineTo(x + width - r, y);
+
+        ctx.quadraticCurveTo(
+            x + width,
+            y,
+            x + width,
+            y + r
+        );
+
+        ctx.lineTo(x + width, y + height);
+        ctx.lineTo(x, y + height);
+        ctx.lineTo(x, y + r);
+      }
+
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = '#14532d';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    };
+
+
+
+
     const gameLoop = () => {
       const bgGradient = ctx.createLinearGradient(0, 0, 0, height);
       bgGradient.addColorStop(0, '#87CEEB');
@@ -509,34 +574,56 @@ function App() {
       pipesRef.current = pipesRef.current.filter(pipe => pipe.x > -pipeWidth);
 
       pipesRef.current.forEach(pipe => {
-        drawPipe(pipe.x, 0, pipe.topHeight, true);
-        drawPipe(pipe.x, pipe.topHeight + pipeGap, height - pipe.topHeight - pipeGap - groundHeight, false);
+        drawRoundedPipe(pipe.x, 0, pipeWidth, pipe.topHeight, true);
+        drawRoundedPipe(
+            pipe.x,
+            pipe.topHeight + pipeGap,
+            pipeWidth,
+            height - pipe.topHeight - pipeGap - groundHeight,
+            false
+        );
+
 
         if (obstacleImgRef.current) {
-          const imgSize = isMobile ? 40 : 60;
+          const imgSize = pipeWidth * 1; // scale with pipe
+
+          // top obstacle image
           ctx.save();
           ctx.beginPath();
-          ctx.arc(pipe.x + pipeWidth / 2, pipe.topHeight - 15, imgSize / 2, 0, Math.PI * 2);
+          ctx.arc(
+              pipe.x + pipeWidth / 2,
+              pipe.topHeight - imgSize / 2,
+              imgSize / 2,
+              0,
+              Math.PI * 2
+          );
           ctx.clip();
           ctx.drawImage(
-            obstacleImgRef.current,
-            pipe.x + pipeWidth / 2 - imgSize / 2,
-            pipe.topHeight - 15 - imgSize / 2,
-            imgSize,
-            imgSize
+              obstacleImgRef.current,
+              pipe.x + pipeWidth / 2 - imgSize / 2,
+              pipe.topHeight - imgSize,
+              imgSize,
+              imgSize
           );
           ctx.restore();
 
+          // bottom obstacle image
           ctx.save();
           ctx.beginPath();
-          ctx.arc(pipe.x + pipeWidth / 2, pipe.topHeight + pipeGap + 15, imgSize / 2, 0, Math.PI * 2);
+          ctx.arc(
+              pipe.x + pipeWidth / 2,
+              pipe.topHeight + pipeGap + imgSize / 2,
+              imgSize / 2,
+              0,
+              Math.PI * 2
+          );
           ctx.clip();
           ctx.drawImage(
-            obstacleImgRef.current,
-            pipe.x + pipeWidth / 2 - imgSize / 2,
-            pipe.topHeight + pipeGap + 15 - imgSize / 2,
-            imgSize,
-            imgSize
+              obstacleImgRef.current,
+              pipe.x + pipeWidth / 2 - imgSize / 2,
+              pipe.topHeight + pipeGap,
+              imgSize,
+              imgSize
           );
           ctx.restore();
         }
@@ -725,7 +812,7 @@ function App() {
                       className="w-20 h-20 rounded-full border-4 border-lime-500 object-cover"
                     />
                     <label className="upload-button bg-lime-500 text-white px-6 py-3 rounded-full flex items-center gap-2">
-                      <Upload size={20} />
+                      <Upload size={30} />
                       Upload
                       <input
                         type="file"
