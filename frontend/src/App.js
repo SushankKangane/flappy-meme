@@ -181,9 +181,28 @@ function App() {
 
   const startGame = () => {
     initGame();
+    primeRAF();   // 🔥 warm up animation frame
     setGameState('ready'); // Set to ready state, waiting for first click
     setShowResults(false);
   };
+  const primeRAF = () => {
+    let frames = 0;
+
+    function warmup(ts) {
+      frames++;
+      if (frames < 5) {
+        requestAnimationFrame(warmup);
+      } else {
+        // reset timing AFTER warmup
+        lastFrameTimeRef.current = null;
+        refreshRateRef.current = 60;
+        console.log("RAF primed");
+      }
+    }
+
+    requestAnimationFrame(warmup);
+  };
+
 
   const beginPlaying = useCallback(() => {
     // First pipe starts from right edge
