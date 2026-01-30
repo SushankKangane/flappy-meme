@@ -412,6 +412,27 @@ function App() {
   }, [gameState, isMobile, canvasSize]);
 
   useEffect(() => {
+    let frameCount = 0;
+    let startTime = 0;
+
+    function detectRefreshRate(timestamp) {
+      if (!startTime) startTime = timestamp;
+      frameCount++;
+
+      if (timestamp - startTime >= 1000) {
+        refreshRateRef.current = frameCount || 60;
+        console.log("Detected Refresh Rate:", refreshRateRef.current);
+        return;
+      }
+
+      requestAnimationFrame(detectRefreshRate);
+    }
+
+    requestAnimationFrame(detectRefreshRate);
+  }, []);
+
+
+  useEffect(() => {
     if (gameState !== 'playing') return;
 
     const canvas = canvasRef.current;
@@ -546,28 +567,6 @@ function App() {
       ctx.lineWidth = 2;
       ctx.stroke();
     };
-    useEffect(() => {
-      let frameCount = 0;
-      let startTime = 0;
-
-      function detectRefreshRate(timestamp) {
-        if (!startTime) startTime = timestamp;
-        frameCount++;
-
-        if (timestamp - startTime >= 1000) {
-          refreshRateRef.current = frameCount || 60;
-          console.log("Detected Refresh Rate:", refreshRateRef.current);
-          return;
-        }
-
-        requestAnimationFrame(detectRefreshRate);
-      }
-
-      requestAnimationFrame(detectRefreshRate);
-    }, []);
-
-
-
 
     const gameLoop = (timestamp) => {
 
