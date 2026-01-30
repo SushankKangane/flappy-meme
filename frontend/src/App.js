@@ -181,6 +181,9 @@ function App() {
 
   const startGame = () => {
     initGame();
+    lastFrameTimeRef.current = null;
+    refreshRateRef.current = 60;
+
     setGameState('ready'); // Set to ready state, waiting for first click
     setShowResults(false);
   };
@@ -543,23 +546,26 @@ function App() {
       ctx.lineWidth = 2;
       ctx.stroke();
     };
+    useEffect(() => {
+      let frameCount = 0;
+      let startTime = 0;
 
-    let frameCount = 0;
-    let startTime = 0;
+      function detectRefreshRate(timestamp) {
+        if (!startTime) startTime = timestamp;
+        frameCount++;
 
-    function detectRefreshRate(timestamp) {
-      if (!startTime) startTime = timestamp;
-      frameCount++;
+        if (timestamp - startTime >= 1000) {
+          refreshRateRef.current = frameCount || 60;
+          console.log("Detected Refresh Rate:", refreshRateRef.current);
+          return;
+        }
 
-      if (timestamp - startTime >= 1000) {
-        refreshRateRef.current = frameCount;
-        console.log("Detected Refresh Rate:", refreshRateRef.current);
-        return;
+        requestAnimationFrame(detectRefreshRate);
       }
-      requestAnimationFrame(detectRefreshRate);
-    }
 
-    requestAnimationFrame(detectRefreshRate);
+      requestAnimationFrame(detectRefreshRate);
+    }, []);
+
 
 
 
@@ -610,6 +616,7 @@ function App() {
 
       if (playerRef.current.y + playerSize > height - groundHeight || playerRef.current.y < 0) {
         endGame();
+        gameLoopRef.current = null;
         return;
       }
 
