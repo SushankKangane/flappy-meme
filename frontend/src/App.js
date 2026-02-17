@@ -1057,6 +1057,28 @@ function App() {
       {/* Footer - only show on setup page */}
       {gameState === 'setup' && (
           <footer className="py-6 text-center border-t border-slate-200 bg-yellow-50">
+            <nav className="flex items-center justify-center gap-4 mb-3 flex-wrap">
+              <a
+                href="/about.html"
+                className="text-slate-500 hover:text-rose-500 text-sm font-semibold transition-colors"
+              >
+                About
+              </a>
+              <span className="text-slate-300">|</span>
+              <a
+                href="/privacy-policy.html"
+                className="text-slate-500 hover:text-rose-500 text-sm font-semibold transition-colors"
+              >
+                Privacy Policy
+              </a>
+              <span className="text-slate-300">|</span>
+              <a
+                href="/contact.html"
+                className="text-slate-500 hover:text-rose-500 text-sm font-semibold transition-colors"
+              >
+                Contact
+              </a>
+            </nav>
             <p className="text-slate-500 text-sm">
               Made with ❤️ for meme and game lovers
             </p>
